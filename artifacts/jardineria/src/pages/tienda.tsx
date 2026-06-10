@@ -101,12 +101,12 @@ function ProductCard({
           {product.description}
         </p>
 
-        <div className="flex items-end justify-between mt-auto gap-3">
-          <div>
-            <span className="text-2xl font-bold text-primary font-serif">
+        <div className="flex items-end justify-between mt-auto gap-2">
+          <div className="min-w-0">
+            <span className="text-xl sm:text-2xl font-bold text-primary font-serif">
               {formatPrice(product.price)}
             </span>
-            <span className="text-xs text-muted-foreground ml-1">/ {product.unit}</span>
+            <span className="text-xs text-muted-foreground ml-1 whitespace-nowrap">/ {product.unit}</span>
           </div>
 
           <a
@@ -145,7 +145,7 @@ function ProductDetail({ id, onClose }: { id: number; onClose: () => void }) {
 
   return (
     <div className="flex flex-col md:flex-row gap-0">
-      <div className="relative md:w-1/2 h-64 md:h-auto bg-muted overflow-hidden rounded-t-lg md:rounded-l-lg md:rounded-tr-none flex-shrink-0">
+      <div className="relative md:w-1/2 h-48 md:h-auto bg-muted overflow-hidden rounded-t-lg md:rounded-l-lg md:rounded-tr-none flex-shrink-0">
         <img
           src={product.imageUrl}
           alt={product.name}
@@ -226,32 +226,32 @@ export default function Tienda() {
       <Navbar />
 
       {/* Header */}
-      <div className="bg-primary pt-28 pb-16 relative overflow-hidden">
+      <div className="bg-primary pt-32 md:pt-36 pb-10 md:pb-16 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-10"
           style={{ backgroundImage: "radial-gradient(circle at 30% 50%, #fff 0%, transparent 60%)" }}
         />
         <div className="container mx-auto px-4 md:px-6 relative">
-          <Link href="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm mb-6 transition-colors">
+          <Link href="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm mb-4 md:mb-6 transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Volver al inicio
           </Link>
-          <div className="flex items-center gap-4 mb-3">
-            <ShoppingBag className="w-8 h-8 text-secondary" />
-            <h1 className="font-serif font-bold text-3xl md:text-4xl text-white">
+          <div className="flex items-center gap-3 mb-3">
+            <ShoppingBag className="w-6 h-6 md:w-8 md:h-8 text-secondary flex-shrink-0" />
+            <h1 className="font-serif font-bold text-2xl md:text-3xl lg:text-4xl text-white leading-tight">
               Tienda de Materiales
             </h1>
           </div>
-          <p className="text-white/80 text-lg max-w-2xl">
-            Plantas, macetas, tierra y herramientas seleccionadas para proyectos de jardinería profesional. Pedidos por WhatsApp con entrega en Bogotá y la Sabana.
+          <p className="text-white/80 text-base md:text-lg max-w-2xl">
+            Plantas, macetas, tierra y herramientas para proyectos de jardinería profesional. Pedidos por WhatsApp con entrega en Bogotá y la Sabana.
           </p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="sticky top-0 z-40 bg-white border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex gap-2 py-3 overflow-x-auto scrollbar-hide">
+        <div className="relative">
+          <div className="flex gap-2 py-3 overflow-x-auto scrollbar-hide px-4 md:px-6">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.value}
@@ -266,6 +266,8 @@ export default function Tienda() {
               </button>
             ))}
           </div>
+          {/* Fade hint for scroll on mobile */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-white to-transparent md:hidden" />
         </div>
       </div>
 
@@ -337,7 +339,7 @@ export default function Tienda() {
 
       {/* Product Detail Modal */}
       <Dialog open={selectedProductId !== null} onOpenChange={(open) => { if (!open) setSelectedProductId(null); }}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-2xl">
+        <DialogContent className="max-w-3xl w-[calc(100vw-2rem)] p-0 overflow-hidden rounded-2xl max-h-[90dvh] overflow-y-auto">
           {selectedProductId !== null && (
             <ProductDetail id={selectedProductId} onClose={() => setSelectedProductId(null)} />
           )}
