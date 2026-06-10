@@ -14,6 +14,8 @@ tags:
     description: Solicitudes de cotización
   - name: projects
     description: Portafolio de proyectos
+  - name: products
+    description: Tienda de materiales
 paths:
   /healthz:
     get:
@@ -94,6 +96,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Project"
+        "404":
+          description: No encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: Listar productos de la tienda
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de productos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Obtener detalle de un producto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
         "404":
           description: No encontrado
           content:
@@ -233,6 +281,38 @@ components:
           type: array
           items:
             type: string
+
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - price
+        - category
+        - imageUrl
+        - unit
+        - inStock
+        - featured
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        category:
+          type: string
+        imageUrl:
+          type: string
+        unit:
+          type: string
+        inStock:
+          type: boolean
+        featured:
+          type: boolean
 
     PortfolioStats:
       type: object

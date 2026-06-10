@@ -8,10 +8,12 @@
 
 export * from './errorResponse';
 export * from './healthStatus';
+export * from './listProductsParams';
 export * from './listProjectsCategory';
 export * from './listProjectsParams';
 export * from './portfolioStats';
 export * from './portfolioStatsByCategory';
+export * from './product';
 export * from './project';
 export * from './quote';
 export * from './quoteInput';

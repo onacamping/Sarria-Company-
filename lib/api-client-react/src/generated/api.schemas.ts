@@ -85,6 +85,18 @@ export interface Project {
   tags?: string[];
 }
 
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  imageUrl: string;
+  unit: string;
+  inStock: boolean;
+  featured: boolean;
+}
+
 export type PortfolioStatsByCategory = {[key: string]: number};
 
 export interface PortfolioStats {
@@ -108,4 +120,8 @@ export const ListProjectsCategory = {
   edificios: 'edificios',
   centros_comerciales: 'centros_comerciales',
 } as const;
+
+export type ListProductsParams = {
+category?: string;
+};
 

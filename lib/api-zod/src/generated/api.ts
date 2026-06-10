@@ -85,6 +85,47 @@ export const GetProjectResponse = zod.object({
 
 
 /**
+ * @summary Listar productos de la tienda
+ */
+export const ListProductsQueryParams = zod.object({
+  "category": zod.coerce.string().optional()
+})
+
+export const ListProductsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "price": zod.number(),
+  "category": zod.string(),
+  "imageUrl": zod.string(),
+  "unit": zod.string(),
+  "inStock": zod.boolean(),
+  "featured": zod.boolean()
+})
+export const ListProductsResponse = zod.array(ListProductsResponseItem)
+
+
+/**
+ * @summary Obtener detalle de un producto
+ */
+export const GetProductParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetProductResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "price": zod.number(),
+  "category": zod.string(),
+  "imageUrl": zod.string(),
+  "unit": zod.string(),
+  "inStock": zod.boolean(),
+  "featured": zod.boolean()
+})
+
+
+/**
  * @summary Estadísticas del portafolio (clientes, metros cuadrados, años)
  */
 export const GetProjectStatsResponse = zod.object({
