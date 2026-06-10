@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "naE4e2HeS4hIMD8OElS9m"
+uri = "file://artifacts/jardineria/src/assets/hero-bg.jpg"
+type = "image"
+title = "corporate office building garden"
+
+[[outputs]]
+id = "iSsLjcTkUkFKle_duuZ9R"
+uri = "file://artifacts/jardineria/src/assets/about-team.jpg"
+type = "image"
+title = "landscaping workers gardening"

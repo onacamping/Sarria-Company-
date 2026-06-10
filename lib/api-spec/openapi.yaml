@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API para sitio web corporativo de jardinería B2B
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: quotes
+    description: Solicitudes de cotización
+  - name: projects
+    description: Portafolio de proyectos
 paths:
   /healthz:
     get:
@@ -24,6 +28,92 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /quotes:
+    post:
+      operationId: submitQuote
+      tags: [quotes]
+      summary: Enviar solicitud de cotización
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Solicitud recibida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        "400":
+          description: Datos inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: Listar proyectos del portafolio
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [conjuntos_residenciales, colegios, edificios, centros_comerciales]
+      responses:
+        "200":
+          description: Lista de proyectos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Obtener detalle de un proyecto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Proyecto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: No encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /projects/stats:
+    get:
+      operationId: getProjectStats
+      tags: [projects]
+      summary: Estadísticas del portafolio (clientes, metros cuadrados, años)
+      responses:
+        "200":
+          description: Estadísticas del portafolio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +124,133 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    QuoteInput:
+      type: object
+      required:
+        - name
+        - company
+        - clientType
+        - phone
+        - service
+        - message
+      properties:
+        name:
+          type: string
+          minLength: 2
+        company:
+          type: string
+          minLength: 2
+        clientType:
+          type: string
+          enum: [conjunto_residencial, colegio, edificio, centro_comercial, otro]
+        phone:
+          type: string
+          minLength: 7
+        email:
+          type: ["string", "null"]
+        service:
+          type: string
+          enum: [mantenimiento, diseno, instalacion, poda, fumigacion, otro]
+        location:
+          type: ["string", "null"]
+        area:
+          type: ["string", "null"]
+        message:
+          type: string
+          minLength: 10
+
+    Quote:
+      type: object
+      required:
+        - id
+        - name
+        - company
+        - clientType
+        - phone
+        - service
+        - message
+        - createdAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        company:
+          type: string
+        clientType:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        service:
+          type: string
+        location:
+          type: ["string", "null"]
+        area:
+          type: ["string", "null"]
+        message:
+          type: string
+        createdAt:
+          type: string
+
+    Project:
+      type: object
+      required:
+        - id
+        - title
+        - category
+        - location
+        - description
+        - imageUrl
+        - year
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        category:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        year:
+          type: integer
+        areaSqm:
+          type: ["integer", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+
+    PortfolioStats:
+      type: object
+      required:
+        - totalProjects
+        - totalClients
+        - yearsExperience
+        - totalAreaSqm
+      properties:
+        totalProjects:
+          type: integer
+        totalClients:
+          type: integer
+        yearsExperience:
+          type: integer
+        totalAreaSqm:
+          type: integer
+        byCategory:
+          type: object
+          additionalProperties:
+            type: integer
