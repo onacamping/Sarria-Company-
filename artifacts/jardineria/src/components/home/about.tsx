@@ -32,7 +32,7 @@ export default function About() {
               
               <div className="mt-8 space-y-6 text-lg text-muted-foreground leading-relaxed">
                 <p>
-                  No somos una franquicia. VerdeCorporativo nació como un negocio familiar con una convicción simple: los espacios verdes de Bogotá y la Sabana merecen un cuidado que entienda la tierra, no solo que la corte.
+                  No somos una franquicia. Sarria Company nació como un negocio familiar con una convicción simple: los espacios verdes de Bogotá y la Sabana merecen un cuidado que entienda la tierra, no solo que la corte.
                 </p>
                 <p>
                   A lo largo de los años, hemos crecido de mantener pequeños jardines residenciales a gestionar las zonas verdes de los conjuntos, colegios y edificios más prestigiosos de la capital. Nuestra reputación se ha construido sobre la puntualidad, la honestidad y resultados visibles.

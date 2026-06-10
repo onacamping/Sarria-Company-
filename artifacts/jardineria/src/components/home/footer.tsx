@@ -79,7 +79,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50">
-          <p>© {currentYear} VerdeCorporativo Paisajismo SAS. Todos los derechos reservados.</p>
+          <p>© {currentYear} Sarria Company Paisajismo SAS. Todos los derechos reservados.</p>
           <div className="flex gap-4">
             <a href="#" className="hover:text-white transition-colors">Política de Privacidad</a>
             <a href="#" className="hover:text-white transition-colors">Términos de Servicio</a>

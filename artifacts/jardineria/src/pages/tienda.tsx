@@ -34,7 +34,7 @@ function Watermark() {
         className="text-white/25 font-serif font-bold text-xl tracking-widest uppercase rotate-[-35deg] whitespace-nowrap"
         style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}
       >
-        VerdeCorporativo
+        Sarria Company
       </span>
     </div>
   );
@@ -334,7 +334,7 @@ export default function Tienda() {
 
       {/* Footer note */}
       <div className="py-6 text-center text-sm text-muted-foreground border-t border-border">
-        <Link href="/" className="hover:text-primary transition-colors font-medium">VerdeCorporativo</Link> — Bogotá y La Sabana
+        <Link href="/" className="hover:text-primary transition-colors font-medium">Sarria Company</Link> — Bogotá y La Sabana
       </div>
 
       {/* Product Detail Modal */}
