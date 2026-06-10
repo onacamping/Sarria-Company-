@@ -33,10 +33,10 @@ export default function Hero() {
               Empresa Familiar en Bogotá y La Sabana
             </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-tight mb-6">
-              Mantenimiento y diseño de zonas verdes para conjuntos residenciales, colegios, edificios y centros comerciales en Bogotá
+              Jardinería Profesional en Bogotá y La Sabana
             </h1>
             <p className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl leading-relaxed">
-              Cuidamos la imagen y el valor de su propiedad. Profesionales confiables, puntuales y expertos en el clima de la Sabana.
+              Diseño y mantenimiento de zonas verdes para conjuntos residenciales, colegios, edificios y centros comerciales. Confiables, puntuales y expertos en el clima de la Sabana.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
