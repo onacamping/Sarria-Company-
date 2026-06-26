@@ -1,7 +1,7 @@
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { Link } from "wouter";
 import { useSettings } from "@/lib/site-settings";
-import logo from "@/assets/logo-transparent.png";
+import logo from "@/assets/logo-sarria-transparent.png";
 
 export default function Footer() {
   const settings = useSettings();

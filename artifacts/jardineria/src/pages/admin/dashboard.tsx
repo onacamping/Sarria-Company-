@@ -2,7 +2,7 @@ import { useState } from "react";
 import { adminLogout, clearToken } from "@/lib/admin-api";
 import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo-transparent.png";
+import logo from "@/assets/logo-sarria-transparent.png";
 import SettingsPanel from "./settings-panel";
 import ProjectsPanel from "./projects-panel";
 import ProductsPanel from "./products-panel";
