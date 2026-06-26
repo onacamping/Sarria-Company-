@@ -4,28 +4,30 @@ import { Building2, Users, AreaChart, CalendarDays } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Stats() {
-  const { data: stats, isLoading, error } = useGetProjectStats();
+  const { data: stats, isLoading } = useGetProjectStats();
 
   const statItems = [
     {
-      label: "Proyectos Realizados",
-      value: stats?.totalProjects || "500+",
-      icon: <Building2 className="w-8 h-8 mb-4 text-secondary" />,
-    },
-    {
       label: "Años de Experiencia",
-      value: stats?.yearsExperience || "15+",
+      value: stats?.yearsExperience ? `+${stats.yearsExperience}` : "+13",
       icon: <CalendarDays className="w-8 h-8 mb-4 text-secondary" />,
     },
     {
-      label: "Metros Cuadrados",
-      value: stats ? `${stats.totalAreaSqm.toLocaleString()} m²` : "50,000+ m²",
-      icon: <AreaChart className="w-8 h-8 mb-4 text-secondary" />,
+      label: "Clientes Activos",
+      value: stats?.totalClients ? `+${stats.totalClients}` : "+60",
+      icon: <Users className="w-8 h-8 mb-4 text-secondary" />,
     },
     {
-      label: "Clientes Activos",
-      value: stats?.totalClients || "120+",
-      icon: <Users className="w-8 h-8 mb-4 text-secondary" />,
+      label: "Proyectos Realizados",
+      value: stats?.totalProjects ? `+${stats.totalProjects}` : "+500",
+      icon: <Building2 className="w-8 h-8 mb-4 text-secondary" />,
+    },
+    {
+      label: "Metros Cuadrados Atendidos",
+      value: stats?.totalAreaSqm
+        ? `${(stats.totalAreaSqm / 1000).toFixed(0)}K m²`
+        : "+50K m²",
+      icon: <AreaChart className="w-8 h-8 mb-4 text-secondary" />,
     },
   ];
 

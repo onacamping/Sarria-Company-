@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, sql } from "drizzle-orm";
-import { db, projectsTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+import { db, projectsTable, siteSettingsTable } from "@workspace/db";
 import { ListProjectsQueryParams, GetProjectParams } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -20,11 +20,16 @@ function serializeProject(p: typeof projectsTable.$inferSelect) {
 }
 
 router.get("/projects/stats", async (req, res): Promise<void> => {
-  const projects = await db.select().from(projectsTable);
+  const [projects, settings] = await Promise.all([
+    db.select().from(projectsTable),
+    db.select().from(siteSettingsTable),
+  ]);
+
+  const settingsMap = Object.fromEntries(settings.map((s) => [s.key, s.value]));
 
   const totalProjects = projects.length;
-  const totalClients = new Set(projects.map((p) => p.company ?? p.location)).size;
-  const yearsExperience = 12;
+  const yearsExperience = Number(settingsMap["years_experience"] ?? 13);
+  const totalClients = Number(settingsMap["active_clients"] ?? 60);
   const totalAreaSqm = projects.reduce((sum, p) => sum + (p.areaSqm ?? 0), 0);
 
   const byCategory: Record<string, number> = {};

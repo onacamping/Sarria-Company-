@@ -5,12 +5,14 @@ import aboutImg from "@/assets/about-team.jpg";
 
 export default function About() {
   const trustSignals = [
-    "Más de 15 años de experiencia comprobada",
-    "Conocimiento experto del clima y suelo sabanero",
+    "Más de 13 años de experiencia especializada en el sector",
+    "Más de 60 clientes activos en Bogotá y la Sabana",
+    "Diagnóstico técnico y visitas de evaluación sin costo",
+    "Propuestas personalizadas orientadas a resultados medibles",
     "Personal contratado directamente, sin intermediarios",
+    "Seguimiento permanente y atención ágil a cada requerimiento",
     "Cumplimiento estricto de normas SST y ambientales",
-    "Seguros de responsabilidad civil vigentes",
-    "Equipos y maquinaria propia de última tecnología"
+    "Equipos y maquinaria propia de última tecnología",
   ];
 
   return (
@@ -35,7 +37,10 @@ export default function About() {
                   No somos una franquicia. Sarria Company nació como un negocio familiar con una convicción simple: los espacios verdes de Bogotá y la Sabana merecen un cuidado que entienda la tierra, no solo que la corte.
                 </p>
                 <p>
-                  A lo largo de los años, hemos crecido de mantener pequeños jardines residenciales a gestionar las zonas verdes de los conjuntos, colegios y edificios más prestigiosos de la capital. Nuestra reputación se ha construido sobre la puntualidad, la honestidad y resultados visibles.
+                  Con más de 13 años en el mercado y más de 60 clientes activos entre conjuntos residenciales, centros comerciales, instituciones educativas, clínicas y empresas, nos hemos consolidado como un aliado estratégico para la gestión integral de zonas verdes.
+                </p>
+                <p>
+                  En Sarria Company entendemos que cada proyecto tiene necesidades específicas. Por eso no trabajamos con soluciones genéricas. Nuestro proceso inicia con una visita de diagnóstico sin costo que nos permite diseñar un plan de acción ajustado a las condiciones reales de su espacio.
                 </p>
                 <p className="font-medium text-foreground">
                   Cuando usted nos contrata, no solo contrata jardineros. Contrata la tranquilidad de saber que profesionales certificados se encargarán del activo natural de su propiedad.
@@ -45,7 +50,7 @@ export default function About() {
               <div className="mt-10 grid sm:grid-cols-2 gap-4">
                 {trustSignals.map((signal, idx) => (
                   <div key={idx} className="flex items-start gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-secondary flex-shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-secondary flex-shrink-0 mt-0.5" />
                     <span className="text-sm font-semibold text-foreground">{signal}</span>
                   </div>
                 ))}
@@ -77,7 +82,6 @@ export default function About() {
               </div>
             </motion.div>
             
-            {/* Decorative element */}
             <div className="absolute -z-10 -bottom-8 -right-8 w-64 h-64 bg-secondary/10 rounded-full blur-3xl" />
           </div>
           

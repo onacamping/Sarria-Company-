@@ -1,33 +1,58 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
 import SectionHeading from "./section-heading";
 
+interface Testimonial {
+  id: number;
+  quote: string;
+  author: string;
+  role: string;
+  location: string;
+}
+
+const FALLBACK: Testimonial[] = [
+  {
+    id: 1,
+    quote: "Desde que asumieron el mantenimiento del conjunto, las zonas comunes se han transformado. Son puntuales, el personal es muy respetuoso y el césped nunca había estado tan verde. Totalmente recomendados para copropiedades.",
+    author: "Carlos Mendoza",
+    role: "Administrador de Conjunto Residencial",
+    location: "Chía",
+  },
+  {
+    id: 2,
+    quote: "Necesitábamos recuperar las canchas y los jardines antes de iniciar el año escolar. Cumplieron con el cronograma de manera impecable y nos asesoraron en especies seguras para los niños. Excelente servicio.",
+    author: "Dra. Patricia Ramírez",
+    role: "Rectora de Colegio",
+    location: "Bogotá, Norte",
+  },
+  {
+    id: 3,
+    quote: "El diseño y mantenimiento de las terrazas verdes de nuestro edificio corporativo ha mejorado la imagen ante nuestros clientes. Es un equipo profesional que no requiere supervisión constante, saben lo que hacen.",
+    author: "Andrés Silva",
+    role: "Gerente de Operaciones",
+    location: "Centro Empresarial Calle 100",
+  },
+];
+
+const base = () => (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+
 export default function Testimonials() {
-  const testimonials = [
-    {
-      quote: "Desde que asumieron el mantenimiento del conjunto, las zonas comunes se han transformado. Son puntuales, el personal es muy respetuoso y el césped nunca había estado tan verde. Totalmente recomendados para copropiedades.",
-      author: "Carlos Mendoza",
-      role: "Administrador de Conjunto Residencial",
-      location: "Chía"
-    },
-    {
-      quote: "Necesitábamos recuperar las canchas y los jardines antes de iniciar el año escolar. Cumplieron con el cronograma de manera impecable y nos asesoraron en especies seguras para los niños. Excelente servicio.",
-      author: "Dra. Patricia Ramírez",
-      role: "Rectora de Colegio",
-      location: "Bogotá, Norte"
-    },
-    {
-      quote: "El diseño y mantenimiento de las terrazas verdes de nuestro edificio corporativo ha mejorado la imagen ante nuestros clientes. Es un equipo profesional que no requiere supervisión constante, saben lo que hacen.",
-      author: "Andrés Silva",
-      role: "Gerente de Operaciones",
-      location: "Centro Empresarial Calle 100"
-    }
-  ];
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(FALLBACK);
+
+  useEffect(() => {
+    fetch(`${base()}/api/testimonials`)
+      .then((r) => r.json())
+      .then((data: Testimonial[]) => {
+        if (Array.isArray(data) && data.length > 0) setTestimonials(data);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <section className="py-24 bg-white">
       <div className="container mx-auto px-4 md:px-6">
-        <SectionHeading 
+        <SectionHeading
           title="Lo Que Dicen Nuestros Clientes"
           subtitle="Garantía de Satisfacción"
           alignment="center"
@@ -36,7 +61,7 @@ export default function Testimonials() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
           {testimonials.map((testimonial, index) => (
             <motion.div
-              key={index}
+              key={testimonial.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

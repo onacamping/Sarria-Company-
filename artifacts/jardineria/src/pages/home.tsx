@@ -15,27 +15,47 @@ export default function Home() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": "Jardinería Bogotá",
-    "image": "https://example.com/logo.png",
-    "description": "Empresa familiar de mantenimiento y diseño de jardines en Bogotá y Sabana. Atendemos conjuntos residenciales, colegios, edificios y centros comerciales.",
+    "name": "Sarria Company",
+    "legalName": "Sarria Company Paisajismo SAS",
+    "image": "https://sarriacompany.com/logo.png",
+    "description": "Sarria Company es una empresa especializada en jardinería, paisajismo y mantenimiento integral de zonas verdes con más de 13 años de experiencia. Atendemos conjuntos residenciales, colegios, edificios, clínicas y centros comerciales en Bogotá y la Sabana.",
+    "url": "https://sarriacompany.com",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Calle 100",
       "addressLocality": "Bogotá",
       "addressRegion": "Cundinamarca",
       "addressCountry": "CO"
     },
-    "telephone": "+573001234567"
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 4.7110,
+      "longitude": -74.0721
+    },
+    "areaServed": ["Bogotá", "Chía", "Cajicá", "Sopó", "La Calera", "Cota", "Tenjo", "Funza", "Mosquera"],
+    "serviceType": ["Jardinería", "Paisajismo", "Mantenimiento de zonas verdes", "Sistemas de riego", "Servicios forestales"],
+    "foundingDate": "2008",
+    "numberOfEmployees": "10-50",
+    "priceRange": "$$"
   };
 
   return (
     <>
       <Helmet>
-        <title>Jardinería y Mantenimiento de Zonas Verdes en Bogotá | Conjuntos, Colegios y Edificios</title>
-        <meta name="description" content="Empresa familiar de mantenimiento y diseño de jardines en Bogotá y Sabana. Atendemos conjuntos residenciales, colegios, edificios y centros comerciales. Solicita tu cotización gratis." />
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
+        <title>Sarria Company | Jardinería y Paisajismo en Bogotá y La Sabana</title>
+        <meta
+          name="description"
+          content="Sarria Company — más de 13 años de experiencia en jardinería, paisajismo y mantenimiento de zonas verdes en Bogotá y La Sabana. Atendemos conjuntos residenciales, colegios, edificios y centros comerciales. +60 clientes activos. Cotización gratis."
+        />
+        <meta
+          name="keywords"
+          content="jardinería Bogotá, paisajismo Bogotá, mantenimiento zonas verdes, jardinería conjuntos residenciales, jardinería colegios, sistemas de riego Bogotá, Sarria Company"
+        />
+        <meta property="og:title" content="Sarria Company | Jardinería y Paisajismo en Bogotá" />
+        <meta
+          property="og:description"
+          content="Más de 13 años de experiencia. Atendemos conjuntos, colegios, edificios y centros comerciales en Bogotá y La Sabana."
+        />
+        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Helmet>
       
       <div className="flex flex-col min-h-screen">
