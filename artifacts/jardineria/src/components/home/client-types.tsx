@@ -1,71 +1,52 @@
 import { motion } from "framer-motion";
 import { Building, GraduationCap, Briefcase, ShoppingBag } from "lucide-react";
 import SectionHeading from "./section-heading";
+import { useSettings } from "@/lib/site-settings";
+
+const DEFAULT_INTRO =
+  "No somos una empresa de jardinería genérica. Adaptamos nuestros protocolos a las exigencias operativas y de seguridad específicas de su sector.";
+
+const segments = [
+  {
+    id: "conjuntos",
+    title: "Conjuntos Residenciales",
+    icon: <Building className="w-8 h-8" />,
+    description: "Valorizamos su copropiedad garantizando áreas comunes impecables que mejoran la calidad de vida de los residentes.",
+    benefits: ["Cronogramas adaptados a asambleas", "Manejo seguro de productos químicos", "Personal uniformado y carnetizado", "Atención de emergencias 24/7"],
+  },
+  {
+    id: "colegios",
+    title: "Colegios e Instituciones",
+    icon: <GraduationCap className="w-8 h-8" />,
+    description: "Creamos y mantenemos entornos seguros que fomentan el aprendizaje al aire libre y el contacto con la naturaleza.",
+    benefits: ["Zonas de juego seguras", "Mantenimiento en horarios no escolares", "Especies no tóxicas", "Campos deportivos de alto tráfico"],
+  },
+  {
+    id: "edificios",
+    title: "Edificios de Oficinas",
+    icon: <Briefcase className="w-8 h-8" />,
+    description: "Proyectamos una imagen corporativa sólida desde la entrada con jardines exteriores y terrazas empresariales impecables.",
+    benefits: ["Jardinería de interiores", "Mantenimiento de cubiertas verdes", "Riego automatizado", "Sistemas de bajo mantenimiento"],
+  },
+  {
+    id: "centros",
+    title: "Centros Comerciales",
+    icon: <ShoppingBag className="w-8 h-8" />,
+    description: "Espacios atractivos que invitan a la permanencia de los visitantes y complementan la experiencia de compra.",
+    benefits: ["Impacto visual de alto nivel", "Jardines verticales", "Renovación floral por temporadas", "Operación sin interrumpir el flujo"],
+  },
+];
 
 export default function ClientTypes() {
-  const segments = [
-    {
-      id: "conjuntos",
-      title: "Conjuntos Residenciales",
-      icon: <Building className="w-8 h-8" />,
-      description: "Valorizamos su copropiedad garantizando áreas comunes impecables que mejoran la calidad de vida de los residentes.",
-      benefits: [
-        "Cronogramas adaptados a asambleas",
-        "Manejo seguro de productos químicos",
-        "Personal uniformado y carnetizado",
-        "Atención de emergencias 24/7"
-      ]
-    },
-    {
-      id: "colegios",
-      title: "Colegios e Instituciones",
-      icon: <GraduationCap className="w-8 h-8" />,
-      description: "Creamos y mantenemos entornos seguros que fomentan el aprendizaje al aire libre y el contacto con la naturaleza.",
-      benefits: [
-        "Zonas de juego seguras",
-        "Mantenimiento en horarios no escolares",
-        "Especies no tóxicas",
-        "Campos deportivos de alto tráfico"
-      ]
-    },
-    {
-      id: "edificios",
-      title: "Edificios de Oficinas",
-      icon: <Briefcase className="w-8 h-8" />,
-      description: "Proyectamos una imagen corporativa sólida desde la entrada con jardines exteriores y terrazas empresariales impecables.",
-      benefits: [
-        "Jardinería de interiores",
-        "Mantenimiento de cubiertas verdes",
-        "Riego automatizado",
-        "Sistemas de bajo mantenimiento"
-      ]
-    },
-    {
-      id: "centros",
-      title: "Centros Comerciales",
-      icon: <ShoppingBag className="w-8 h-8" />,
-      description: "Espacios atractivos que invitan a la permanencia de los visitantes y complementan la experiencia de compra.",
-      benefits: [
-        "Impacto visual de alto nivel",
-        "Jardines verticales",
-        "Renovación floral por temporadas",
-        "Operación sin interrumpir el flujo"
-      ]
-    }
-  ];
+  const settings = useSettings();
+  const intro = settings["clients_intro"] || DEFAULT_INTRO;
 
   return (
     <section className="py-24 bg-white">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-3xl mx-auto mb-16 text-center">
-          <SectionHeading 
-            title="Entendemos Su Negocio"
-            subtitle="Especialistas por Sector"
-            alignment="center"
-          />
-          <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-            No somos una empresa de jardinería genérica. Adaptamos nuestros protocolos a las exigencias operativas y de seguridad específicas de su sector.
-          </p>
+          <SectionHeading title="Entendemos Su Negocio" subtitle="Especialistas por Sector" alignment="center" />
+          <p className="mt-6 text-lg text-muted-foreground leading-relaxed">{intro}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
@@ -85,9 +66,7 @@ export default function ClientTypes() {
               </div>
               <div>
                 <h3 className="text-2xl font-serif font-bold text-foreground mb-3">{segment.title}</h3>
-                <p className="text-muted-foreground mb-6 leading-relaxed">
-                  {segment.description}
-                </p>
+                <p className="text-muted-foreground mb-6 leading-relaxed">{segment.description}</p>
                 <ul className="space-y-2">
                   {segment.benefits.map((benefit, i) => (
                     <li key={i} className="flex items-start">

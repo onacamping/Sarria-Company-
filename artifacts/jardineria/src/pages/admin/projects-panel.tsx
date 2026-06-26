@@ -12,6 +12,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import ImageUpload from "@/components/admin/image-upload";
 
 interface Project {
   id: number;
@@ -26,25 +27,13 @@ interface Project {
 }
 
 const EMPTY: Omit<Project, "id"> = {
-  title: "",
-  category: "",
-  location: "",
-  description: "",
-  image_url: "",
-  year: new Date().getFullYear(),
-  area_sqm: null,
-  tags: [],
+  title: "", category: "", location: "", description: "", image_url: "",
+  year: new Date().getFullYear(), area_sqm: null, tags: [],
 };
 
 const CATEGORIES = [
-  "Conjunto Residencial",
-  "Centro Comercial",
-  "Institución Educativa",
-  "Edificio Corporativo",
-  "Clínica / Hospital",
-  "Parque / Área Pública",
-  "Empresa / Industria",
-  "Otro",
+  "Conjunto Residencial", "Centro Comercial", "Institución Educativa",
+  "Edificio Corporativo", "Clínica / Hospital", "Parque / Área Pública", "Empresa / Industria", "Otro",
 ];
 
 export default function ProjectsPanel() {
@@ -54,38 +43,18 @@ export default function ProjectsPanel() {
   const [editing, setEditing] = useState<Project | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    try {
-      const data = await getAdminProjects();
-      setProjects(data);
-    } finally {
-      setLoading(false);
-    }
+    try { setProjects(await getAdminProjects()); } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  function openAdd() {
-    setEditing(null);
-    setForm(EMPTY);
-    setDialogOpen(true);
-  }
-
+  function openAdd() { setEditing(null); setForm(EMPTY); setDialogOpen(true); }
   function openEdit(p: Project) {
     setEditing(p);
-    setForm({
-      title: p.title,
-      category: p.category,
-      location: p.location,
-      description: p.description,
-      image_url: p.image_url,
-      year: p.year,
-      area_sqm: p.area_sqm,
-      tags: p.tags ?? [],
-    });
+    setForm({ title: p.title, category: p.category, location: p.location, description: p.description, image_url: p.image_url, year: p.year, area_sqm: p.area_sqm, tags: p.tags ?? [] });
     setDialogOpen(true);
   }
 
@@ -93,39 +62,22 @@ export default function ProjectsPanel() {
     setSaving(true);
     try {
       const payload = {
-        title: form.title,
-        category: form.category,
-        location: form.location,
-        description: form.description,
-        imageUrl: form.image_url,
-        year: form.year,
+        title: form.title, category: form.category, location: form.location,
+        description: form.description, imageUrl: form.image_url, year: form.year,
         areaSqm: form.area_sqm,
         tags: typeof form.tags === "string"
           ? (form.tags as string).split(",").map((t) => t.trim()).filter(Boolean)
           : form.tags ?? [],
       };
-      if (editing) {
-        await updateProject(editing.id, payload);
-      } else {
-        await createProject(payload);
-      }
+      if (editing) { await updateProject(editing.id, payload); } else { await createProject(payload); }
       setDialogOpen(false);
       await load();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (err: any) { alert(err.message); } finally { setSaving(false); }
   }
 
   async function handleDelete(id: number) {
-    if (!window.confirm("¿Eliminar este proyecto del portafolio?")) return;
-    try {
-      await deleteProject(id);
-      await load();
-    } catch (err: any) {
-      alert(err.message);
-    }
+    if (!window.confirm("¿Eliminar este proyecto?")) return;
+    try { await deleteProject(id); await load(); } catch (err: any) { alert(err.message); }
   }
 
   const f = (key: keyof typeof form) => (
@@ -170,13 +122,7 @@ export default function ProjectsPanel() {
                       <Button variant="ghost" size="icon" onClick={() => openEdit(p)} title="Editar">
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(p.id)}
-                        title="Eliminar"
-                      >
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)} title="Eliminar">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -184,11 +130,7 @@ export default function ProjectsPanel() {
                 </tr>
               ))}
               {projects.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-muted-foreground">
-                    No hay proyectos. Agrega el primero.
-                  </td>
-                </tr>
+                <tr><td colSpan={5} className="py-12 text-center text-muted-foreground">No hay proyectos. Agrega el primero.</td></tr>
               )}
             </tbody>
           </table>
@@ -207,11 +149,7 @@ export default function ProjectsPanel() {
             </div>
             <div className="space-y-1.5">
               <Label>Categoría *</Label>
-              <select
-                className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
-                value={form.category}
-                onChange={f("category")}
-              >
+              <select className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background" value={form.category} onChange={f("category")}>
                 <option value="">Seleccionar...</option>
                 {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -235,8 +173,14 @@ export default function ProjectsPanel() {
               <Textarea value={form.description} onChange={f("description")} rows={3} placeholder="Describe el trabajo realizado..." />
             </div>
             <div className="space-y-1.5">
-              <Label>URL de imagen</Label>
-              <Input value={form.image_url} onChange={f("image_url")} placeholder="https://..." />
+              <Label>Imagen del proyecto</Label>
+              {form.image_url && (
+                <div className="rounded-lg overflow-hidden h-28 bg-muted mb-2">
+                  <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <Input value={form.image_url} onChange={f("image_url")} placeholder="https://... o sube un archivo" className="mb-2" />
+              <ImageUpload label="Subir imagen" accept="image/*" onUploaded={(url) => setForm((p) => ({ ...p, image_url: url }))} />
             </div>
             <div className="space-y-1.5">
               <Label>Etiquetas (separadas por coma)</Label>

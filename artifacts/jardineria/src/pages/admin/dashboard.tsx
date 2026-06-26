@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { adminLogout, clearToken } from "@/lib/admin-api";
-import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu } from "lucide-react";
+import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo-transparent.png";
 import SettingsPanel from "./settings-panel";
@@ -8,11 +8,13 @@ import ProjectsPanel from "./projects-panel";
 import ProductsPanel from "./products-panel";
 import QuotesPanel from "./quotes-panel";
 import TestimonialsPanel from "./testimonials-panel";
+import ServicesPanel from "./services-panel";
 
-type Section = "settings" | "projects" | "products" | "quotes" | "testimonials";
+type Section = "settings" | "services" | "projects" | "products" | "quotes" | "testimonials";
 
 const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "settings", label: "Configuración", icon: Settings },
+  { id: "services", label: "Servicios", icon: Leaf },
   { id: "projects", label: "Portafolio", icon: FolderOpen },
   { id: "products", label: "Tienda", icon: ShoppingBag },
   { id: "quotes", label: "Cotizaciones", icon: MessageSquare },
@@ -28,9 +30,7 @@ export default function Dashboard({ onLogout }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   async function handleLogout() {
-    try {
-      await adminLogout();
-    } catch {}
+    try { await adminLogout(); } catch {}
     clearToken();
     onLogout();
   }
@@ -51,10 +51,7 @@ export default function Dashboard({ onLogout }: Props) {
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                  setActive(item.id);
-                  setSidebarOpen(false);
-                }}
+                onClick={() => { setActive(item.id); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
                   active === item.id
                     ? "bg-primary text-primary-foreground"
@@ -84,6 +81,7 @@ export default function Dashboard({ onLogout }: Props) {
 
   const panelMap: Record<Section, React.ReactNode> = {
     settings: <SettingsPanel />,
+    services: <ServicesPanel />,
     projects: <ProjectsPanel />,
     products: <ProductsPanel />,
     quotes: <QuotesPanel />,
@@ -103,11 +101,7 @@ export default function Dashboard({ onLogout }: Props) {
           <div className="w-56 bg-white border-r border-border flex flex-col shadow-xl">
             <SidebarContent />
           </div>
-          <button
-            className="flex-1 bg-black/40"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Cerrar menú"
-          />
+          <button className="flex-1 bg-black/40" onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú" />
         </div>
       )}
 
@@ -118,10 +112,7 @@ export default function Dashboard({ onLogout }: Props) {
           </Button>
           <span className="font-semibold text-sm">{activeLabel}</span>
         </div>
-
-        <div className="p-4 md:p-8 flex-1">
-          {panelMap[active]}
-        </div>
+        <div className="p-4 md:p-8 flex-1">{panelMap[active]}</div>
       </main>
     </div>
   );

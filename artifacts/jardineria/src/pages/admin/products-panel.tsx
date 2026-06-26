@@ -5,48 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import ImageUpload from "@/components/admin/image-upload";
 
 interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  image_url: string;
-  unit: string;
-  in_stock: boolean;
-  featured: boolean;
+  id: number; name: string; description: string; price: number;
+  category: string; image_url: string; unit: string; in_stock: boolean; featured: boolean;
 }
 
 const EMPTY: Omit<Product, "id"> = {
-  name: "",
-  description: "",
-  price: 0,
-  category: "",
-  image_url: "",
-  unit: "unidad",
-  in_stock: true,
-  featured: false,
+  name: "", description: "", price: 0, category: "", image_url: "", unit: "unidad", in_stock: true, featured: false,
 };
 
 const CATEGORIES = [
-  "Plantas",
-  "Fertilizantes",
-  "Herramientas",
-  "Sustratos",
-  "Sistemas de Riego",
-  "Macetas y Contenedores",
-  "Decoración",
-  "Semillas",
-  "Control de Plagas",
-  "Otro",
+  "Plantas", "Fertilizantes", "Herramientas", "Sustratos", "Sistemas de Riego",
+  "Macetas y Contenedores", "Decoración", "Semillas", "Control de Plagas", "Otro",
 ];
 
 const UNITS = ["unidad", "kg", "litro", "m²", "bulto", "caja", "rollo", "metro"];
@@ -61,72 +36,31 @@ export default function ProductsPanel() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    try {
-      const data = await getAdminProducts();
-      setProducts(data);
-    } finally {
-      setLoading(false);
-    }
+    try { setProducts(await getAdminProducts()); } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  function openAdd() {
-    setEditing(null);
-    setForm(EMPTY);
-    setDialogOpen(true);
-  }
-
+  function openAdd() { setEditing(null); setForm(EMPTY); setDialogOpen(true); }
   function openEdit(p: Product) {
     setEditing(p);
-    setForm({
-      name: p.name,
-      description: p.description,
-      price: p.price,
-      category: p.category,
-      image_url: p.image_url,
-      unit: p.unit,
-      in_stock: p.in_stock,
-      featured: p.featured,
-    });
+    setForm({ name: p.name, description: p.description, price: p.price, category: p.category, image_url: p.image_url, unit: p.unit, in_stock: p.in_stock, featured: p.featured });
     setDialogOpen(true);
   }
 
   async function handleSave() {
     setSaving(true);
     try {
-      const payload = {
-        name: form.name,
-        description: form.description,
-        price: Number(form.price),
-        category: form.category,
-        imageUrl: form.image_url,
-        unit: form.unit,
-        inStock: form.in_stock,
-        featured: form.featured,
-      };
-      if (editing) {
-        await updateProduct(editing.id, payload);
-      } else {
-        await createProduct(payload);
-      }
+      const payload = { name: form.name, description: form.description, price: Number(form.price), category: form.category, imageUrl: form.image_url, unit: form.unit, inStock: form.in_stock, featured: form.featured };
+      if (editing) { await updateProduct(editing.id, payload); } else { await createProduct(payload); }
       setDialogOpen(false);
       await load();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (err: any) { alert(err.message); } finally { setSaving(false); }
   }
 
   async function handleDelete(id: number) {
     if (!window.confirm("¿Eliminar este producto de la tienda?")) return;
-    try {
-      await deleteProduct(id);
-      await load();
-    } catch (err: any) {
-      alert(err.message);
-    }
+    try { await deleteProduct(id); await load(); } catch (err: any) { alert(err.message); }
   }
 
   const f = (key: keyof typeof form) => (
@@ -140,9 +74,7 @@ export default function ProductsPanel() {
           <h1 className="text-2xl font-bold">Tienda — Productos</h1>
           <p className="text-muted-foreground text-sm mt-1">{products.length} producto(s) registrado(s)</p>
         </div>
-        <Button onClick={openAdd} className="gap-2">
-          <Plus className="w-4 h-4" /> Agregar producto
-        </Button>
+        <Button onClick={openAdd} className="gap-2"><Plus className="w-4 h-4" /> Agregar producto</Button>
       </div>
 
       {loading ? (
@@ -164,44 +96,22 @@ export default function ProductsPanel() {
                 <tr key={p.id} className="hover:bg-muted/20 transition-colors">
                   <td className="p-3 font-medium">{p.name}</td>
                   <td className="p-3 text-muted-foreground hidden md:table-cell">{p.category}</td>
-                  <td className="p-3 text-muted-foreground hidden sm:table-cell">
-                    ${p.price.toLocaleString("es-CO")}
-                  </td>
+                  <td className="p-3 text-muted-foreground hidden sm:table-cell">${p.price.toLocaleString("es-CO")}</td>
                   <td className="p-3 hidden sm:table-cell">
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                        p.in_stock
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${p.in_stock ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                       {p.in_stock ? "Disponible" : "Agotado"}
                     </span>
                   </td>
                   <td className="p-3">
                     <div className="flex gap-2 justify-end">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(p)} title="Editar">
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(p.id)}
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(p)} title="Editar"><Pencil className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)} title="Eliminar"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </td>
                 </tr>
               ))}
               {products.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-muted-foreground">
-                    No hay productos. Agrega el primero.
-                  </td>
-                </tr>
+                <tr><td colSpan={5} className="py-12 text-center text-muted-foreground">No hay productos. Agrega el primero.</td></tr>
               )}
             </tbody>
           </table>
@@ -220,11 +130,7 @@ export default function ProductsPanel() {
             </div>
             <div className="space-y-1.5">
               <Label>Categoría *</Label>
-              <select
-                className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
-                value={form.category}
-                onChange={f("category")}
-              >
+              <select className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background" value={form.category} onChange={f("category")}>
                 <option value="">Seleccionar...</option>
                 {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -232,21 +138,11 @@ export default function ProductsPanel() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Precio (COP) *</Label>
-                <Input
-                  type="number"
-                  value={form.price}
-                  onChange={f("price")}
-                  placeholder="0"
-                  min={0}
-                />
+                <Input type="number" value={form.price} onChange={f("price")} placeholder="0" min={0} />
               </div>
               <div className="space-y-1.5">
                 <Label>Unidad</Label>
-                <select
-                  className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
-                  value={form.unit}
-                  onChange={f("unit")}
-                >
+                <select className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background" value={form.unit} onChange={f("unit")}>
                   {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
@@ -256,26 +152,22 @@ export default function ProductsPanel() {
               <Textarea value={form.description} onChange={f("description")} rows={3} placeholder="Describe el producto..." />
             </div>
             <div className="space-y-1.5">
-              <Label>URL de imagen</Label>
-              <Input value={form.image_url} onChange={f("image_url")} placeholder="https://..." />
+              <Label>Imagen del producto</Label>
+              {form.image_url && (
+                <div className="rounded-lg overflow-hidden h-28 bg-muted mb-2">
+                  <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <Input value={form.image_url} onChange={f("image_url")} placeholder="https://... o sube un archivo" className="mb-2" />
+              <ImageUpload label="Subir imagen" accept="image/*" onUploaded={(url) => setForm((p) => ({ ...p, image_url: url }))} />
             </div>
             <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.in_stock}
-                  onChange={(e) => setForm((p) => ({ ...p, in_stock: e.target.checked }))}
-                  className="rounded"
-                />
+                <input type="checkbox" checked={form.in_stock} onChange={(e) => setForm((p) => ({ ...p, in_stock: e.target.checked }))} className="rounded" />
                 Disponible en stock
               </label>
               <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.featured}
-                  onChange={(e) => setForm((p) => ({ ...p, featured: e.target.checked }))}
-                  className="rounded"
-                />
+                <input type="checkbox" checked={form.featured} onChange={(e) => setForm((p) => ({ ...p, featured: e.target.checked }))} className="rounded" />
                 Producto destacado
               </label>
             </div>

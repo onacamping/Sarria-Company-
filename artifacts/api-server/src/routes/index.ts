@@ -4,6 +4,8 @@ import quotesRouter from "./quotes";
 import projectsRouter from "./projects";
 import productsRouter from "./products";
 import testimonialsRouter from "./testimonials";
+import settingsRouter from "./settings";
+import servicesRouter from "./services";
 import adminRouter from "./admin";
 
 const router: IRouter = Router();
@@ -13,6 +15,8 @@ router.use(quotesRouter);
 router.use(projectsRouter);
 router.use(productsRouter);
 router.use(testimonialsRouter);
+router.use(settingsRouter);
+router.use(servicesRouter);
 router.use(adminRouter);
 
 export default router;
