@@ -42,9 +42,6 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <span className="inline-block py-1 px-3 rounded-full bg-secondary text-secondary-foreground text-sm font-bold tracking-wider uppercase mb-6 shadow-sm">
-              {heroBadge}
-            </span>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-tight mb-6">
               {heroTitle}
             </h1>
