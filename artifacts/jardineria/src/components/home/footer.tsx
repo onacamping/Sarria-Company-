@@ -23,7 +23,7 @@ export default function Footer() {
 
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <img src={logo} alt="Sarria Company" className="h-10 w-auto brightness-0 invert" />
+              <img src={logo} alt="Sarria Company" className="h-16 w-auto brightness-0 invert" />
             </Link>
             <p className="text-white/80 text-sm leading-relaxed mt-4 pr-4">
               Especialistas en paisajismo y mantenimiento integral de zonas verdes para el sector B2B en Bogotá y la Sabana. Confianza, puntualidad y resultados.

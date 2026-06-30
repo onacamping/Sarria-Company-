@@ -35,7 +35,7 @@ export default function Navbar() {
             <img
               src={logo}
               alt="Sarria Company"
-              className={`h-12 md:h-14 w-auto transition-all duration-300 ${
+              className={`h-16 md:h-20 w-auto transition-all duration-300 ${
                 isScrolled ? "" : "brightness-0 invert"
               }`}
             />
