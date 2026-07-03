@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { adminLogout, clearToken } from "@/lib/admin-api";
-import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf } from "lucide-react";
+import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo-sarria-transparent.png";
 import SettingsPanel from "./settings-panel";
@@ -9,8 +9,9 @@ import ProductsPanel from "./products-panel";
 import QuotesPanel from "./quotes-panel";
 import TestimonialsPanel from "./testimonials-panel";
 import ServicesPanel from "./services-panel";
+import CertificatesPanel from "./certificates-panel";
 
-type Section = "settings" | "services" | "projects" | "products" | "quotes" | "testimonials";
+type Section = "settings" | "services" | "projects" | "products" | "quotes" | "testimonials" | "certificates";
 
 const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "settings", label: "Configuración", icon: Settings },
@@ -19,6 +20,7 @@ const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "products", label: "Tienda", icon: ShoppingBag },
   { id: "quotes", label: "Cotizaciones", icon: MessageSquare },
   { id: "testimonials", label: "Testimonios", icon: Star },
+  { id: "certificates", label: "Certificados", icon: ShieldCheck },
 ];
 
 interface Props {
@@ -86,6 +88,7 @@ export default function Dashboard({ onLogout }: Props) {
     products: <ProductsPanel />,
     quotes: <QuotesPanel />,
     testimonials: <TestimonialsPanel />,
+    certificates: <CertificatesPanel />,
   };
 
   const activeLabel = navItems.find((n) => n.id === active)?.label ?? "";

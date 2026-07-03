@@ -6,6 +6,7 @@ import { useListProducts, useGetProduct } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import Navbar from "@/components/home/navbar";
+import { useSettings } from "@/lib/site-settings";
 
 const WHATSAPP_NUMBER = "573001234567";
 
@@ -216,13 +217,19 @@ function ProductDetail({ id, onClose }: { id: number; onClose: () => void }) {
 export default function Tienda() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const settings = useSettings();
 
   const { data: products = [], isLoading } = useListProducts(
     selectedCategory ? { category: selectedCategory } : {}
   );
 
+  const storeStyle: React.CSSProperties = {
+    ...(settings["color_store_primary"] ? { ["--primary" as string]: settings["color_store_primary"] } : {}),
+    ...(settings["color_store_secondary"] ? { ["--secondary" as string]: settings["color_store_secondary"] } : {}),
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={storeStyle}>
       <Navbar />
 
       {/* Header */}

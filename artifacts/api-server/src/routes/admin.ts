@@ -12,6 +12,7 @@ import {
   siteSettingsTable,
   testimonialsTable,
   servicesTable,
+  certificatesTable,
 } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -19,6 +20,9 @@ const router: IRouter = Router();
 const adminTokens = new Set<string>();
 const ADMIN_USERNAME = process.env["ADMIN_USERNAME"] ?? "admin";
 const ADMIN_PASSWORD = process.env["ADMIN_PASSWORD"] ?? "sarria2024";
+
+const certTokens = new Set<string>();
+const CERTIFICATES_PASSWORD = process.env["CERTIFICATES_PASSWORD"] ?? "sarria2026";
 
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!existsSync(uploadsDir)) mkdirSync(uploadsDir, { recursive: true });
@@ -34,7 +38,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    if (/\.(jpe?g|png|webp|gif|mp4|webm|mov|svg)$/i.test(file.originalname)) {
+    if (/\.(jpe?g|png|webp|gif|mp4|webm|mov|svg|pdf)$/i.test(file.originalname)) {
       cb(null, true);
     } else {
       cb(new Error("Tipo de archivo no permitido"));
@@ -51,6 +55,15 @@ function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   const token = auth.slice(7);
   if (!adminTokens.has(token)) {
     res.status(401).json({ error: "Token inválido o expirado" });
+    return;
+  }
+  next();
+}
+
+function requireCertAccess(req: Request, res: Response, next: NextFunction): void {
+  const certToken = req.headers["x-cert-token"];
+  if (typeof certToken !== "string" || !certTokens.has(certToken)) {
+    res.status(401).json({ error: "Acceso a certificados no autorizado" });
     return;
   }
   next();
@@ -238,5 +251,50 @@ router.delete("/admin/services/:id", requireAdmin, async (req: Request, res: Res
   await db.delete(servicesTable).where(eq(servicesTable.id, Number(req.params["id"])));
   res.json({ ok: true });
 });
+
+router.post("/admin/certificates/unlock", requireAdmin, (req: Request, res: Response): void => {
+  const { password } = req.body as { password: string };
+  if (password === CERTIFICATES_PASSWORD) {
+    const token = randomBytes(32).toString("hex");
+    certTokens.add(token);
+    res.json({ token, ok: true });
+  } else {
+    res.status(401).json({ error: "Contraseña incorrecta" });
+  }
+});
+
+router.get(
+  "/admin/certificates",
+  requireAdmin,
+  requireCertAccess,
+  async (_req: Request, res: Response): Promise<void> => {
+    const certificates = await db.select().from(certificatesTable).orderBy(desc(certificatesTable.createdAt));
+    res.json(certificates);
+  }
+);
+
+router.post(
+  "/admin/certificates",
+  requireAdmin,
+  requireCertAccess,
+  async (req: Request, res: Response): Promise<void> => {
+    const d = req.body as any;
+    const [certificate] = await db
+      .insert(certificatesTable)
+      .values({ title: d.title, fileUrl: d.fileUrl, fileType: d.fileType ?? "pdf" })
+      .returning();
+    res.json(certificate);
+  }
+);
+
+router.delete(
+  "/admin/certificates/:id",
+  requireAdmin,
+  requireCertAccess,
+  async (req: Request, res: Response): Promise<void> => {
+    await db.delete(certificatesTable).where(eq(certificatesTable.id, Number(req.params["id"])));
+    res.json({ ok: true });
+  }
+);
 
 export default router;

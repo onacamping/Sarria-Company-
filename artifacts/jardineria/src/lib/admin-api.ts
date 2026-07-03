@@ -1,8 +1,13 @@
 const TOKEN_KEY = "sarria_admin_token";
+const CERT_TOKEN_KEY = "sarria_cert_token";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const setToken = (t: string) => localStorage.setItem(TOKEN_KEY, t);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+
+export const getCertToken = () => sessionStorage.getItem(CERT_TOKEN_KEY);
+export const setCertToken = (t: string) => sessionStorage.setItem(CERT_TOKEN_KEY, t);
+export const clearCertToken = () => sessionStorage.removeItem(CERT_TOKEN_KEY);
 
 const base = () => (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 
@@ -63,3 +68,32 @@ export const updateTestimonial = (id: number, d: any) =>
   req(`/testimonials/${id}`, { method: "PUT", body: JSON.stringify(d) });
 export const deleteTestimonial = (id: number) =>
   req(`/testimonials/${id}`, { method: "DELETE" });
+
+export const unlockCertificates = (password: string) =>
+  req<{ token: string }>("/certificates/unlock", {
+    method: "POST",
+    body: JSON.stringify({ password }),
+  });
+
+async function certReq<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  const token = getToken();
+  const certToken = getCertToken();
+  const res = await fetch(`${base()}/api/admin${path}`, {
+    ...opts,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(certToken ? { "X-Cert-Token": certToken } : {}),
+      ...(opts.headers ?? {}),
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as { error?: string }).error ?? `HTTP ${res.status}`);
+  return data as T;
+}
+
+export const getCertificates = () => certReq<any[]>("/certificates");
+export const createCertificate = (d: any) =>
+  certReq("/certificates", { method: "POST", body: JSON.stringify(d) });
+export const deleteCertificate = (id: number) =>
+  certReq(`/certificates/${id}`, { method: "DELETE" });

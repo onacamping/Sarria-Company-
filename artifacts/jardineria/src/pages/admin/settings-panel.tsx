@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import ColorPicker from "@/components/admin/color-picker";
+import ImageUpload from "@/components/admin/image-upload";
 
 interface SettingDef {
   key: string;
@@ -43,6 +45,16 @@ const CONTENT_DEFS: SettingDef[] = [
     type: "text",
     placeholder: "Cuidamos los espacios que importan",
   },
+];
+
+const SITE_COLOR_DEFS: { key: string; label: string }[] = [
+  { key: "color_primary", label: "Color primario del sitio" },
+  { key: "color_secondary", label: "Color secundario del sitio" },
+];
+
+const STORE_COLOR_DEFS: { key: string; label: string }[] = [
+  { key: "color_store_primary", label: "Color primario de la tienda" },
+  { key: "color_store_secondary", label: "Color secundario de la tienda" },
 ];
 
 function FieldRow({
@@ -166,6 +178,99 @@ export default function SettingsPanel() {
           <CardDescription>Textos editables de las secciones principales.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">{renderGroup(CONTENT_DEFS)}</CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">🖼️ Imagen de fondo del hero</CardTitle>
+          <CardDescription>
+            Imagen que aparece detrás del título "{values["hero_title"] || "Jardinería Profesional..."}" en la portada.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {values["hero_image_url"] && (
+            <img
+              src={values["hero_image_url"]}
+              alt="Vista previa hero"
+              className="w-full h-40 object-cover rounded-lg border border-border"
+            />
+          )}
+          <div className="flex gap-3 items-center">
+            <ImageUpload
+              accept="image/*"
+              label="Subir imagen del hero"
+              onUploaded={(url) => {
+                set("hero_image_url")(url);
+                updateSetting("hero_image_url", url).catch((err) => alert(err.message));
+              }}
+            />
+            {saving === "hero_image_url" && <span className="text-xs text-muted-foreground">Guardando...</span>}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">🎨 Colores de todo el sitio</CardTitle>
+          <CardDescription>
+            Cambian el color primario y secundario usado en el sitio principal (botones, íconos, encabezados).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {SITE_COLOR_DEFS.map((def) => (
+            <div key={def.key} className="flex gap-3 items-end">
+              <div className="flex-1">
+                <ColorPicker
+                  id={def.key}
+                  label={def.label}
+                  value={values[def.key] ?? ""}
+                  onChange={set(def.key)}
+                />
+              </div>
+              <Button
+                size="sm"
+                onClick={() => save(def.key)}
+                disabled={saving === def.key}
+                variant={saved === def.key ? "secondary" : "default"}
+                className="shrink-0"
+              >
+                {saved === def.key ? "✓ Guardado" : saving === def.key ? "..." : "Guardar"}
+              </Button>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">🛍️ Colores de la tienda</CardTitle>
+          <CardDescription>
+            Colores exclusivos de la página de Tienda. Si se dejan vacíos, se usan los colores generales del sitio.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {STORE_COLOR_DEFS.map((def) => (
+            <div key={def.key} className="flex gap-3 items-end">
+              <div className="flex-1">
+                <ColorPicker
+                  id={def.key}
+                  label={def.label}
+                  value={values[def.key] ?? ""}
+                  onChange={set(def.key)}
+                />
+              </div>
+              <Button
+                size="sm"
+                onClick={() => save(def.key)}
+                disabled={saving === def.key}
+                variant={saved === def.key ? "secondary" : "default"}
+                className="shrink-0"
+              >
+                {saved === def.key ? "✓ Guardado" : saving === def.key ? "..." : "Guardar"}
+              </Button>
+            </div>
+          ))}
+        </CardContent>
       </Card>
     </div>
   );
