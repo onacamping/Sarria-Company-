@@ -64,7 +64,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     function handleMessage(event: MessageEvent) {
       const msg = event.data;
       if (!msg || msg.type !== "sarria-style-preview") return;
-      applySettingsToRoot({ ...settings, ...msg.draft });
+      const merged = { ...settings, ...msg.draft };
+      applySettingsToRoot(merged);
+      // Merge non-CSS-var keys (e.g. store-specific colors, CTA text) into the
+      // settings context too, so components reading useSettings() directly
+      // (not via CSS vars) also reflect the live draft in the preview iframe.
+      setSettings(merged);
     }
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);

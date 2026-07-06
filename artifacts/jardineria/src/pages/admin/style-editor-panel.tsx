@@ -36,6 +36,8 @@ const STYLE_KEYS = [
   "cta_nav_text",
   "cta_hero_primary_text",
   "cta_hero_whatsapp_text",
+  "color_store_primary",
+  "color_store_secondary",
   "element_style_overrides",
 ] as const;
 
@@ -59,8 +61,17 @@ const DEFAULTS: Draft = {
   cta_nav_text: "Solicitar Cotización",
   cta_hero_primary_text: "Solicitar cotización gratuita",
   cta_hero_whatsapp_text: "Escríbanos por WhatsApp",
+  color_store_primary: "",
+  color_store_secondary: "",
   element_style_overrides: "{}",
 };
+
+type PreviewPage = "/" | "/tienda";
+
+const PREVIEW_PAGES: { value: PreviewPage; label: string }[] = [
+  { value: "/", label: "Inicio" },
+  { value: "/tienda", label: "Tienda" },
+];
 
 interface SelectedElement {
   id: string;
@@ -125,6 +136,7 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [inspectMode, setInspectMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
+  const [previewPage, setPreviewPage] = useState<PreviewPage>("/");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -254,7 +266,7 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
     return <div className="py-20 text-center text-muted-foreground">Cargando editor visual...</div>;
   }
 
-  const previewSrc = `${(import.meta.env.BASE_URL ?? "/").replace(/\/$/, "")}/`;
+  const previewSrc = `${(import.meta.env.BASE_URL ?? "/").replace(/\/$/, "")}${previewPage}`;
 
   return (
     <div className="space-y-6">
@@ -356,6 +368,46 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
 
           <Card>
             <CardHeader className="pb-3">
+              <CardTitle className="text-base">🛍️ Colores de la tienda</CardTitle>
+              <CardDescription>
+                Opcional: colores propios para la página de Tienda. Si se dejan vacíos, usa los
+                colores generales del sitio.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ColorPicker id="color_store_primary" label="Color primario de la tienda" value={draft.color_store_primary ?? ""} onChange={set("color_store_primary")} />
+              <ColorPicker id="color_store_secondary" label="Color secundario de la tienda" value={draft.color_store_secondary ?? ""} onChange={set("color_store_secondary")} />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="w-full"
+                onClick={() =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    color_store_primary: BRAND_DEFAULTS.color_primary,
+                    color_store_secondary: BRAND_DEFAULTS.color_secondary,
+                  }))
+                }
+              >
+                Aplicar valores del manual de marca
+              </Button>
+              {(draft.color_store_primary || draft.color_store_secondary) && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setDraft((prev) => ({ ...prev, color_store_primary: "", color_store_secondary: "" }))}
+                >
+                  Usar colores generales del sitio
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
               <CardTitle className="text-base">🔘 Botones</CardTitle>
               <CardDescription>Color de fondo y texto de cada tipo de botón, y el texto que muestran.</CardDescription>
             </CardHeader>
@@ -428,7 +480,26 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
         {/* Live preview */}
         <div className="lg:sticky lg:top-4 space-y-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
-            <p className="text-sm font-medium text-muted-foreground">Vista previa en vivo</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-muted-foreground">Vista previa en vivo</p>
+              <div className="flex gap-1 bg-muted rounded-lg p-1">
+                {PREVIEW_PAGES.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => {
+                      closeElementEditor();
+                      setPreviewPage(p.value);
+                    }}
+                    className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
+                      previewPage === p.value ? "bg-white shadow-sm" : "text-muted-foreground"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
