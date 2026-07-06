@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,17 +7,23 @@ import Home from "@/pages/home";
 import Tienda from "@/pages/tienda";
 import Admin from "@/pages/admin/index";
 import { ThemeProvider } from "@/lib/site-settings";
+import ElementInspectorProvider from "@/components/element-inspector-provider";
 
 const queryClient = new QueryClient();
 
 function Router() {
+  const [location] = useLocation();
+  const isAdmin = location.startsWith("/admin");
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/tienda" component={Tienda} />
-      <Route path="/admin" component={Admin} />
-      <Route component={NotFound} />
-    </Switch>
+    <>
+      {!isAdmin && <ElementInspectorProvider />}
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/tienda" component={Tienda} />
+        <Route path="/admin" component={Admin} />
+        <Route component={NotFound} />
+      </Switch>
+    </>
   );
 }
 

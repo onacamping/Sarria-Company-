@@ -6,7 +6,17 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import ColorPicker from "@/components/admin/color-picker";
 import { FONT_CATEGORIES, ALL_FONTS, BRAND_DEFAULTS } from "@/lib/font-catalog";
-import { AlertTriangle, Check, Loader2, Monitor, Smartphone, Sparkles, X } from "lucide-react";
+import { parseOverrides, type ElementOverrideMap } from "@/lib/element-inspector";
+import {
+  AlertTriangle,
+  Check,
+  Loader2,
+  MousePointerClick,
+  Monitor,
+  Smartphone,
+  Sparkles,
+  X,
+} from "lucide-react";
 import manualImg from "@assets/MANUAL_DE_IDENTIDAD_VISUAL_BASICO_LOGO_SARRIA_COMPANY_(1)_1783376093846.jpg";
 
 const STYLE_KEYS = [
@@ -26,6 +36,7 @@ const STYLE_KEYS = [
   "cta_nav_text",
   "cta_hero_primary_text",
   "cta_hero_whatsapp_text",
+  "element_style_overrides",
 ] as const;
 
 type StyleKey = (typeof STYLE_KEYS)[number];
@@ -48,16 +59,27 @@ const DEFAULTS: Draft = {
   cta_nav_text: "Solicitar Cotización",
   cta_hero_primary_text: "Solicitar cotización gratuita",
   cta_hero_whatsapp_text: "Escríbanos por WhatsApp",
+  element_style_overrides: "{}",
 };
+
+interface SelectedElement {
+  id: string;
+  tag: string;
+  text: string;
+  color: string;
+  font: string;
+}
 
 function FontSelect({
   label,
   value,
   onChange,
+  allowNone,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  allowNone?: boolean;
 }) {
   const current = ALL_FONTS.find((f) => f.value === value);
   return (
@@ -68,6 +90,7 @@ function FontSelect({
         onChange={(e) => onChange(e.target.value)}
         className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
       >
+        {allowNone && <option value="">— Tipografía global del sitio —</option>}
         {FONT_CATEGORIES.map((cat) => (
           <optgroup key={cat.id} label={cat.label}>
             {cat.fonts.map((f) => (
@@ -100,6 +123,8 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [inspectMode, setInspectMode] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -145,6 +170,55 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
     if (!win) return;
     win.postMessage({ type: "sarria-style-preview", draft }, "*");
   }, [draft]);
+
+  // Toggle click-to-select mode inside the preview iframe.
+  useEffect(() => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    win.postMessage({ type: "sarria-inspector-mode", enabled: inspectMode }, "*");
+  }, [inspectMode]);
+
+  // Receive element-selected events from the preview iframe.
+  useEffect(() => {
+    function handler(event: MessageEvent) {
+      const msg = event.data;
+      if (!msg || typeof msg !== "object") return;
+      if (msg.type === "sarria-element-selected") {
+        setSelectedElement({ id: msg.id, tag: msg.tag, text: msg.text, color: msg.color, font: msg.font });
+      }
+    }
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  const elementOverrides: ElementOverrideMap = useMemo(
+    () => parseOverrides(draft.element_style_overrides),
+    [draft.element_style_overrides]
+  );
+
+  function updateElementOverride(id: string, patch: { color?: string; font?: string }) {
+    const next: ElementOverrideMap = { ...elementOverrides, [id]: { ...elementOverrides[id], ...patch } };
+    setDraft((prev) => ({ ...prev, element_style_overrides: JSON.stringify(next) }));
+  }
+
+  function removeElementOverride(id: string) {
+    const next: ElementOverrideMap = { ...elementOverrides };
+    delete next[id];
+    setDraft((prev) => ({ ...prev, element_style_overrides: JSON.stringify(next) }));
+  }
+
+  function closeElementEditor() {
+    setSelectedElement(null);
+    const win = iframeRef.current?.contentWindow;
+    win?.postMessage({ type: "sarria-element-deselect" }, "*");
+  }
+
+  function toggleInspectMode() {
+    setInspectMode((v) => {
+      if (v) closeElementEditor();
+      return !v;
+    });
+  }
 
   function set<K extends StyleKey>(key: K) {
     return (v: string) => setDraft((prev) => ({ ...prev, [key]: v }));
@@ -353,28 +427,45 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
 
         {/* Live preview */}
         <div className="lg:sticky lg:top-4 space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <p className="text-sm font-medium text-muted-foreground">Vista previa en vivo</p>
-            <div className="flex gap-1 bg-muted rounded-lg p-1">
-              <button
+            <div className="flex items-center gap-2">
+              <Button
                 type="button"
-                onClick={() => setDevice("desktop")}
-                className={`p-1.5 rounded ${device === "desktop" ? "bg-white shadow-sm" : ""}`}
-                aria-label="Vista de escritorio"
+                variant={inspectMode ? "default" : "outline"}
+                size="sm"
+                className="gap-1.5"
+                onClick={toggleInspectMode}
               >
-                <Monitor className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setDevice("mobile")}
-                className={`p-1.5 rounded ${device === "mobile" ? "bg-white shadow-sm" : ""}`}
-                aria-label="Vista móvil"
-              >
-                <Smartphone className="w-4 h-4" />
-              </button>
+                <MousePointerClick className="w-4 h-4" />
+                {inspectMode ? "Seleccionando…" : "Editar un texto o botón"}
+              </Button>
+              <div className="flex gap-1 bg-muted rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setDevice("desktop")}
+                  className={`p-1.5 rounded ${device === "desktop" ? "bg-white shadow-sm" : ""}`}
+                  aria-label="Vista de escritorio"
+                >
+                  <Monitor className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDevice("mobile")}
+                  className={`p-1.5 rounded ${device === "mobile" ? "bg-white shadow-sm" : ""}`}
+                  aria-label="Vista móvil"
+                >
+                  <Smartphone className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
-          <div className="border border-border rounded-xl overflow-hidden bg-white shadow-sm flex justify-center">
+          {inspectMode && (
+            <p className="text-xs bg-primary/10 text-primary border border-primary/20 rounded-lg px-3 py-2">
+              Haz clic sobre cualquier texto o botón de la vista previa para editar su color o tipografía.
+            </p>
+          )}
+          <div className="relative border border-border rounded-xl overflow-hidden bg-white shadow-sm flex justify-center">
             <iframe
               ref={iframeRef}
               src={previewSrc}
@@ -390,8 +481,52 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
                   { type: "sarria-style-preview", draft },
                   "*"
                 );
+                iframeRef.current?.contentWindow?.postMessage(
+                  { type: "sarria-inspector-mode", enabled: inspectMode },
+                  "*"
+                );
               }}
             />
+            {selectedElement && (
+              <div className="absolute top-3 right-3 w-72 bg-white border border-border rounded-lg shadow-xl p-4 space-y-3 z-10">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">
+                      Editando &lt;{selectedElement.tag}&gt;
+                    </p>
+                    <p className="text-sm font-medium truncate max-w-[200px]" title={selectedElement.text}>
+                      “{selectedElement.text}”
+                    </p>
+                  </div>
+                  <button onClick={closeElementEditor} aria-label="Cerrar">
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </div>
+                <ColorPicker
+                  id={`el-${selectedElement.id}-color`}
+                  label="Color del texto"
+                  value={elementOverrides[selectedElement.id]?.color ?? selectedElement.color}
+                  onChange={(v) => updateElementOverride(selectedElement.id, { color: v })}
+                />
+                <FontSelect
+                  label="Tipografía"
+                  allowNone
+                  value={elementOverrides[selectedElement.id]?.font ?? ""}
+                  onChange={(v) => updateElementOverride(selectedElement.id, { font: v || undefined })}
+                />
+                {elementOverrides[selectedElement.id] && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => removeElementOverride(selectedElement.id)}
+                  >
+                    Quitar personalización
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -165,3 +165,18 @@
 html {
   scroll-behavior: smooth;
 }
+
+body.sarria-inspect-mode [data-el-id] {
+  cursor: pointer;
+}
+
+.sarria-inspect-hover {
+  outline: 2px dashed #16a34a !important;
+  outline-offset: 2px;
+  background-color: rgba(22, 163, 74, 0.08) !important;
+}
+
+.sarria-inspect-selected {
+  outline: 2px solid #16a34a !important;
+  outline-offset: 2px;
+}
