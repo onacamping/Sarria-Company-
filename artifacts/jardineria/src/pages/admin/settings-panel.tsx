@@ -47,11 +47,6 @@ const CONTENT_DEFS: SettingDef[] = [
   },
 ];
 
-const SITE_COLOR_DEFS: { key: string; label: string }[] = [
-  { key: "color_primary", label: "Color primario del sitio" },
-  { key: "color_secondary", label: "Color secundario del sitio" },
-];
-
 const STORE_COLOR_DEFS: { key: string; label: string }[] = [
   { key: "color_store_primary", label: "Color primario de la tienda" },
   { key: "color_store_secondary", label: "Color secundario de la tienda" },
@@ -209,36 +204,15 @@ export default function SettingsPanel() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-primary/30 bg-primary/5">
         <CardHeader>
-          <CardTitle className="text-base">🎨 Colores de todo el sitio</CardTitle>
+          <CardTitle className="text-base">🎨 Colores, tipografía, botones y logo</CardTitle>
           <CardDescription>
-            Cambian el color primario y secundario usado en el sitio principal (botones, íconos, encabezados).
+            Los colores generales, la tipografía, los botones y el tamaño del logo ahora se editan en la
+            pestaña <strong>Editor Visual</strong>, donde puedes ver una vista previa en vivo antes de
+            guardar.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {SITE_COLOR_DEFS.map((def) => (
-            <div key={def.key} className="flex gap-3 items-end">
-              <div className="flex-1">
-                <ColorPicker
-                  id={def.key}
-                  label={def.label}
-                  value={values[def.key] ?? ""}
-                  onChange={set(def.key)}
-                />
-              </div>
-              <Button
-                size="sm"
-                onClick={() => save(def.key)}
-                disabled={saving === def.key}
-                variant={saved === def.key ? "secondary" : "default"}
-                className="shrink-0"
-              >
-                {saved === def.key ? "✓ Guardado" : saving === def.key ? "..." : "Guardar"}
-              </Button>
-            </div>
-          ))}
-        </CardContent>
       </Card>
 
       <Card>

@@ -12,7 +12,7 @@ const buttonVariants = cva(
       variant: {
         default:
            // @replit: no hover, and add primary border
-           "bg-primary text-primary-foreground border border-primary-border",
+           "bg-[hsl(var(--btn-primary-bg))] text-[hsl(var(--btn-primary-text))] border [border-color:hsl(var(--btn-primary-bg))]",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm border-destructive-border",
         outline:
@@ -22,7 +22,7 @@ const buttonVariants = cva(
           " border [border-color:var(--button-outline)] shadow-xs active:shadow-none ",
         secondary:
           // @replit border, no hover, no shadow, secondary border.
-          "border bg-secondary text-secondary-foreground border border-secondary-border ",
+          "border bg-[hsl(var(--btn-secondary-bg))] text-[hsl(var(--btn-secondary-text))] [border-color:hsl(var(--btn-secondary-bg))]",
         // @replit no hover, transparent border
         ghost: "border border-transparent",
         link: "text-primary underline-offset-4 hover:underline",

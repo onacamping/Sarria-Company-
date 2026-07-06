@@ -1,0 +1,60 @@
+/* Brand primary + secondary (Manual de Identidad) */
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/metropolis/400.css";
+@import "@fontsource/metropolis/500.css";
+@import "@fontsource/metropolis/600.css";
+@import "@fontsource/metropolis/700.css";
+
+/* Serif (con remates) */
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/600.css";
+@import "@fontsource/playfair-display/700.css";
+@import "@fontsource/merriweather/400.css";
+@import "@fontsource/merriweather/700.css";
+@import "@fontsource/lora/400.css";
+@import "@fontsource/lora/600.css";
+@import "@fontsource/lora/700.css";
+@import "@fontsource/eb-garamond/400.css";
+@import "@fontsource/eb-garamond/600.css";
+@import "@fontsource/eb-garamond/700.css";
+
+/* Sans serif (palo seco) */
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/work-sans/400.css";
+@import "@fontsource/work-sans/500.css";
+@import "@fontsource/work-sans/600.css";
+@import "@fontsource/work-sans/700.css";
+@import "@fontsource/montserrat/400.css";
+@import "@fontsource/montserrat/500.css";
+@import "@fontsource/montserrat/600.css";
+@import "@fontsource/montserrat/700.css";
+
+/* Slab serif (egipcias) */
+@import "@fontsource/roboto-slab/400.css";
+@import "@fontsource/roboto-slab/600.css";
+@import "@fontsource/roboto-slab/700.css";
+@import "@fontsource/bitter/400.css";
+@import "@fontsource/bitter/600.css";
+@import "@fontsource/bitter/700.css";
+@import "@fontsource/arvo/400.css";
+@import "@fontsource/arvo/700.css";
+
+/* Script (manuscritas) */
+@import "@fontsource/dancing-script/400.css";
+@import "@fontsource/dancing-script/600.css";
+@import "@fontsource/dancing-script/700.css";
+@import "@fontsource/pacifico/400.css";
+@import "@fontsource/sacramento/400.css";
+
+/* Decorativas (display) */
+@import "@fontsource/bungee/400.css";
+@import "@fontsource/lobster/400.css";
+@import "@fontsource/fredoka/400.css";
+@import "@fontsource/fredoka/500.css";
+@import "@fontsource/fredoka/600.css";

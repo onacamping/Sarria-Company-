@@ -18,6 +18,8 @@ export default function Hero() {
     settings["hero_subtitle"] ??
     "Diseño y mantenimiento de zonas verdes para conjuntos residenciales, colegios, edificios y centros comerciales. Confiables, puntuales y expertos en el clima de la Sabana.";
   const heroBadge = settings["hero_badge"] ?? "Empresa Familiar en Bogotá y La Sabana";
+  const ctaPrimaryText = settings["cta_hero_primary_text"] ?? "Solicitar cotización gratuita";
+  const ctaWhatsappText = settings["cta_hero_whatsapp_text"] ?? "Escríbanos por WhatsApp";
 
   return (
     <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden">
@@ -51,7 +53,7 @@ export default function Hero() {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="text-base h-14 px-8" asChild>
-                <a href="#cotizacion">Solicitar cotización gratuita</a>
+                <a href="#cotizacion">{ctaPrimaryText}</a>
               </Button>
               <Button
                 size="lg"
@@ -61,7 +63,7 @@ export default function Hero() {
               >
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="mr-2 h-5 w-5" />
-                  Escríbanos por WhatsApp
+                  {ctaWhatsappText}
                 </a>
               </Button>
             </div>

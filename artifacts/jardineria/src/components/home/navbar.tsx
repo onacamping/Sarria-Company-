@@ -2,9 +2,12 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSettings } from "@/lib/site-settings";
 import logo from "@/assets/logo-sarria-transparent.png";
 
 export default function Navbar() {
+  const settings = useSettings();
+  const ctaText = settings["cta_nav_text"] ?? "Solicitar Cotización";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -35,7 +38,8 @@ export default function Navbar() {
             <img
               src={logo}
               alt="Sarria Company"
-              className={`h-16 md:h-20 w-auto transition-all duration-300 ${
+              style={{ height: "var(--logo-size, 64px)" }}
+              className={`w-auto transition-all duration-300 ${
                 isScrolled ? "" : "brightness-0 invert"
               }`}
             />
@@ -59,7 +63,7 @@ export default function Navbar() {
               variant={isScrolled ? "default" : "secondary"}
               className="font-medium"
             >
-              <a href="#cotizacion">Solicitar Cotización</a>
+              <a href="#cotizacion">{ctaText}</a>
             </Button>
           </nav>
 
@@ -93,7 +97,7 @@ export default function Navbar() {
           ))}
           <Button asChild className="w-full mt-2">
             <a href="#cotizacion" onClick={() => setIsMobileMenuOpen(false)}>
-              Solicitar Cotización
+              {ctaText}
             </a>
           </Button>
         </div>

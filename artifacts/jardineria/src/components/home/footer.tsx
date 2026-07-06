@@ -23,7 +23,12 @@ export default function Footer() {
 
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <img src={logo} alt="Sarria Company" className="h-16 w-auto brightness-0 invert" />
+              <img
+                src={logo}
+                alt="Sarria Company"
+                style={{ height: "var(--logo-size-footer, 48px)" }}
+                className="w-auto brightness-0 invert"
+              />
             </Link>
             <p className="text-white/80 text-sm leading-relaxed mt-4 pr-4">
               Especialistas en paisajismo y mantenimiento integral de zonas verdes para el sector B2B en Bogotá y la Sabana. Confianza, puntualidad y resultados.
@@ -50,7 +55,7 @@ export default function Footer() {
               <li><a href="#servicios" className="hover:text-secondary transition-colors">Nuestros Servicios</a></li>
               <li><a href="#portafolio" className="hover:text-secondary transition-colors">Portafolio Destacado</a></li>
               <li><a href="#nosotros" className="hover:text-secondary transition-colors">Sobre Nosotros</a></li>
-              <li><a href="#cotizacion" className="hover:text-secondary transition-colors">Solicitar Cotización</a></li>
+              <li><a href="#cotizacion" className="hover:text-secondary transition-colors">{settings["cta_nav_text"] ?? "Solicitar Cotización"}</a></li>
             </ul>
           </div>
 

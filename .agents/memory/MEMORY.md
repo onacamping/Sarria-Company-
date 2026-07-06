@@ -1,0 +1,1 @@
+- [Jardinería style editor conventions](jardineria-style-editor.md) — WYSIWYG admin style editor: draft state + postMessage preview, explicit-save, key/CSS-var sync rule.

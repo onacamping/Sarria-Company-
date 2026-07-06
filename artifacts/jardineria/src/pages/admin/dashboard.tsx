@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { adminLogout, clearToken } from "@/lib/admin-api";
-import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf, ShieldCheck } from "lucide-react";
+import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf, ShieldCheck, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo-sarria-transparent.png";
 import SettingsPanel from "./settings-panel";
@@ -10,11 +10,21 @@ import QuotesPanel from "./quotes-panel";
 import TestimonialsPanel from "./testimonials-panel";
 import ServicesPanel from "./services-panel";
 import CertificatesPanel from "./certificates-panel";
+import StyleEditorPanel from "./style-editor-panel";
 
-type Section = "settings" | "services" | "projects" | "products" | "quotes" | "testimonials" | "certificates";
+type Section =
+  | "settings"
+  | "style"
+  | "services"
+  | "projects"
+  | "products"
+  | "quotes"
+  | "testimonials"
+  | "certificates";
 
 const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "settings", label: "Configuración", icon: Settings },
+  { id: "style", label: "Editor Visual", icon: Palette },
   { id: "services", label: "Servicios", icon: Leaf },
   { id: "projects", label: "Portafolio", icon: FolderOpen },
   { id: "products", label: "Tienda", icon: ShoppingBag },
@@ -30,8 +40,29 @@ interface Props {
 export default function Dashboard({ onLogout }: Props) {
   const [active, setActive] = useState<Section>("settings");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [styleDirty, setStyleDirty] = useState(false);
+
+  const goToSection = useCallback(
+    (id: Section) => {
+      if (active === "style" && styleDirty && id !== "style") {
+        const ok = window.confirm(
+          "Tienes cambios de estilo sin guardar. Si sales de esta pestaña se perderán. ¿Deseas continuar sin guardar?"
+        );
+        if (!ok) return;
+      }
+      setActive(id);
+      setSidebarOpen(false);
+    },
+    [active, styleDirty]
+  );
 
   async function handleLogout() {
+    if (active === "style" && styleDirty) {
+      const ok = window.confirm(
+        "Tienes cambios de estilo sin guardar. Si cierras sesión se perderán. ¿Deseas continuar sin guardar?"
+      );
+      if (!ok) return;
+    }
     try { await adminLogout(); } catch {}
     clearToken();
     onLogout();
@@ -53,7 +84,7 @@ export default function Dashboard({ onLogout }: Props) {
             return (
               <button
                 key={item.id}
-                onClick={() => { setActive(item.id); setSidebarOpen(false); }}
+                onClick={() => goToSection(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
                   active === item.id
                     ? "bg-primary text-primary-foreground"
@@ -83,6 +114,7 @@ export default function Dashboard({ onLogout }: Props) {
 
   const panelMap: Record<Section, React.ReactNode> = {
     settings: <SettingsPanel />,
+    style: <StyleEditorPanel onDirtyChange={setStyleDirty} />,
     services: <ServicesPanel />,
     projects: <ProjectsPanel />,
     products: <ProductsPanel />,

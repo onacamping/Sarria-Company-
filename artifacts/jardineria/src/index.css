@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import "./fonts.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -86,8 +86,24 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --app-font-sans: 'Plus Jakarta Sans', sans-serif;
-  --app-font-serif: 'Fraunces', serif;
+  --app-font-sans: var(--font-body, 'Metropolis', sans-serif);
+  --app-font-serif: var(--font-heading, 'Poppins', sans-serif);
+
+  --font-heading: 'Poppins', sans-serif;
+  --font-subheading: 'Poppins', sans-serif;
+  --font-body: 'Metropolis', sans-serif;
+
+  --color-heading-text: var(--foreground);
+  --color-body-text: var(--foreground);
+
+  --btn-primary-bg: var(--primary);
+  --btn-primary-text: var(--primary-foreground);
+  --btn-secondary-bg: var(--secondary);
+  --btn-secondary-text: var(--secondary-foreground);
+
+  --logo-size: 64px;
+  --logo-size-footer: 48px;
+
   --radius: 0.25rem; /* slightly sharp for corporate feel */
   
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -129,10 +145,20 @@
     @apply border-border;
   }
   body {
-    @apply font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary;
+    @apply antialiased bg-background selection:bg-primary/20 selection:text-primary;
+    font-family: var(--font-body);
+    color: hsl(var(--color-body-text));
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+    color: hsl(var(--color-heading-text));
+  }
+  h4, h5, h6 {
+    font-family: var(--font-subheading);
+    color: hsl(var(--color-heading-text));
+  }
+  p {
+    color: hsl(var(--color-body-text));
   }
 }
 
