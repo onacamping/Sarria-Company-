@@ -60,6 +60,9 @@ export const deleteProduct = (id: number) =>
   req(`/products/${id}`, { method: "DELETE" });
 
 export const getAdminQuotes = () => req<any[]>("/quotes");
+export const updateQuoteStatus = (id: number, status: string) =>
+  req(`/quotes/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) });
+export const deleteQuote = (id: number) => req(`/quotes/${id}`, { method: "DELETE" });
 
 export const getAdminTestimonials = () => req<any[]>("/testimonials");
 export const createTestimonial = (d: any) =>

@@ -194,6 +194,45 @@ router.get("/admin/quotes", requireAdmin, async (_req: Request, res: Response): 
   res.json(quotes);
 });
 
+const QUOTE_STATUSES = ["pendiente", "revisada", "cancelada"] as const;
+
+router.put("/admin/quotes/:id/status", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  const id = Number(req.params["id"]);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "Id inválido" });
+    return;
+  }
+  const status = (req.body as { status?: string }).status;
+  if (!status || !(QUOTE_STATUSES as readonly string[]).includes(status)) {
+    res.status(400).json({ error: "Estado inválido" });
+    return;
+  }
+  const [quote] = await db
+    .update(quotesTable)
+    .set({ status })
+    .where(eq(quotesTable.id, id))
+    .returning();
+  if (!quote) {
+    res.status(404).json({ error: "Cotización no encontrada" });
+    return;
+  }
+  res.json(quote);
+});
+
+router.delete("/admin/quotes/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  const id = Number(req.params["id"]);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "Id inválido" });
+    return;
+  }
+  const [quote] = await db.delete(quotesTable).where(eq(quotesTable.id, id)).returning();
+  if (!quote) {
+    res.status(404).json({ error: "Cotización no encontrada" });
+    return;
+  }
+  res.json({ ok: true });
+});
+
 router.get("/admin/testimonials", requireAdmin, async (_req: Request, res: Response): Promise<void> => {
   const testimonials = await db.select().from(testimonialsTable).orderBy(testimonialsTable.sortOrder);
   res.json(testimonials);

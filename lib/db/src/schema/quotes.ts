@@ -13,6 +13,7 @@ export const quotesTable = pgTable("quotes", {
   location: text("location"),
   area: text("area"),
   message: text("message").notNull(),
+  status: text("status").notNull().default("pendiente"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

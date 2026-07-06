@@ -1,1 +1,2 @@
 - [Jardinería style editor conventions](jardineria-style-editor.md) — WYSIWYG admin style editor: draft state + postMessage preview, explicit-save, key/CSS-var sync rule.
+- [Admin auth tokens are in-memory](admin-auth-inmemory-tokens.md) — restarting api-server invalidates all admin sessions; "Token inválido o expirado" after a restart is expected, not a bug.
