@@ -1,0 +1,21 @@
+Por favor, implementa las siguientes características modificando el backend (base de datos/rutas) y el frontend (panel de administración y vistas públicas):
+
+1. SISTEMA DE LANDING PAGES DINÁMICAS POR CATEGORÍA
+- Crea un módulo en la base de datos para "Landing Pages". Cada landing debe tener: Título, Slug (URL amigable, ej: /clientes/conjuntos-residenciales), Categoría (Conjuntos, Empresas, Colegios, etc.), Contenido, y un Formulario propio asociado.
+- En la barra de navegación principal, bajo el menú "Clientes", genera un submenú dinámico que consulte estas categorías en la base de datos y dirija a su respectiva Landing Page.
+- Cada Landing Page debe renderizar dinámicamente:
+  * Textos y secciones persuasivas específicas.
+  * Una sección de Portafolio/Trabajos filtrada AUTOMÁTICAMENTE para mostrar solo los proyectos que pertenezcan a esa categoría específica de cliente.
+  * Un formulario de registro/contacto independiente cuyos datos guardados en la base de datos queden etiquetados con el origen de esa landing.
+
+2. PANEL DE ADMINISTRACIÓN: EDITOR VISUAL (WYSIWYG)
+- Integra un editor de texto visual (como Quill.js o TinyMCE) en el panel de admin.
+- El administrador debe poder usar este editor para modificar todos los textos, títulos y descripciones tanto de la página principal como de las nuevas Landing Pages creadas.
+- Permite la personalización visual de los formularios (agregar/quitar campos básicos o cambiar los textos de las etiquetas y marcadores de posición).
+
+3. PANEL DE ADMINISTRACIÓN: CONTROLES DE VISIBILIDAD (TOGGLES)
+Agrega interruptores (switches/toggles) en el panel de control para activar o desactivar las siguientes secciones de la página principal (Home):
+- Ocultar/Mostrar el Formulario de Cotizaciones Generales (el que está al fondo de la página).
+- Ocultar/Mostrar la sección global de Portafolio (ya que los trabajos se segmentarán en las landings, pero se debe mantener la opción de encender/apagar esta sección en la Home según se requiera).
+
+Por favor, proporciona el plan de base de datos necesario (tablas o esquemas para Landings, Proyectos, Formularios y Configuraciones Globales), las rutas de backend (API endpoints) para guardar estas configuraciones, y los componentes de frontend necesarios para el editor y los controles del administrador. Asegúrate de que todo el diseño sea limpio y mantenga la estética actual.

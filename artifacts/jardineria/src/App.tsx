@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Tienda from "@/pages/tienda";
 import Admin from "@/pages/admin/index";
+import LandingPage from "@/pages/landing-page";
 import { ThemeProvider } from "@/lib/site-settings";
 import ElementInspectorProvider from "@/components/element-inspector-provider";
 
@@ -20,6 +21,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/tienda" component={Tienda} />
+        <Route path="/clientes/:slug" component={LandingPage} />
         <Route path="/admin" component={Admin} />
         <Route component={NotFound} />
       </Switch>

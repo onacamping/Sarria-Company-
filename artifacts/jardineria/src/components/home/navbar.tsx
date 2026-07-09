@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { Link } from "wouter";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Link, useLocation } from "wouter";
+import { Menu, X, ChevronDown, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettings } from "@/lib/site-settings";
+import { getLandingPages, type LandingPage } from "@/lib/landing-api";
 import logo from "@/assets/logo-sarria-transparent.png";
 
 export default function Navbar() {
@@ -10,21 +11,41 @@ export default function Navbar() {
   const ctaText = settings["cta_nav_text"] ?? "Solicitar Cotización";
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [clientesOpen, setClientesOpen] = useState(false);
+  const [mobilClientesOpen, setMobileClientesOpen] = useState(false);
+  const [landingPages, setLandingPages] = useState<LandingPage[]>([]);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [location] = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    getLandingPages().then(setLandingPages).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setClientesOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const navLinks = [
-    { name: "Servicios", href: "#servicios" },
-    { name: "Portafolio", href: "#portafolio" },
+    { name: "Servicios", href: "/#servicios" },
+    { name: "Portafolio", href: "/#portafolio" },
     { name: "Tienda", href: "/tienda" },
-    { name: "Nosotros", href: "#nosotros" },
+    { name: "Nosotros", href: "/#nosotros" },
   ];
+
+  const textColor = isScrolled ? "text-foreground" : "text-white/90";
+  const hoverColor = "hover:text-secondary";
 
   return (
     <header
@@ -39,9 +60,7 @@ export default function Navbar() {
               src={logo}
               alt="Sarria Company"
               style={{ height: "var(--logo-size, 64px)" }}
-              className={`w-auto transition-all duration-300 ${
-                isScrolled ? "" : "brightness-0 invert"
-              }`}
+              className={`w-auto transition-all duration-300 ${isScrolled ? "" : "brightness-0 invert"}`}
             />
           </Link>
 
@@ -51,19 +70,50 @@ export default function Navbar() {
               <a
                 key={link.name}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-secondary ${
-                  isScrolled ? "text-foreground" : "text-white/90"
-                }`}
+                className={`text-sm font-medium transition-colors ${hoverColor} ${textColor}`}
               >
                 {link.name}
               </a>
             ))}
+
+            {/* Clientes dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setClientesOpen((v) => !v)}
+                className={`flex items-center gap-1 text-sm font-medium transition-colors ${hoverColor} ${textColor}`}
+              >
+                <Users className="w-4 h-4" />
+                Clientes
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${clientesOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {clientesOpen && (
+                <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-border rounded-xl shadow-xl py-2 z-50">
+                  {landingPages.length === 0 ? (
+                    <p className="text-xs text-muted-foreground px-4 py-2">No hay landing pages publicadas aún.</p>
+                  ) : (
+                    landingPages.map((lp) => (
+                      <Link
+                        key={lp.slug}
+                        href={`/clientes/${lp.slug}`}
+                        onClick={() => setClientesOpen(false)}
+                        className="block px-4 py-2.5 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors"
+                      >
+                        {lp.title}
+                      </Link>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
             <Button
               asChild
               variant={isScrolled ? "default" : "secondary"}
               className="font-medium"
             >
-              <a href="#cotizacion">{ctaText}</a>
+              <a href="/#cotizacion">{ctaText}</a>
             </Button>
           </nav>
 
@@ -95,8 +145,39 @@ export default function Navbar() {
               {link.name}
             </a>
           ))}
+
+          {/* Mobile Clientes */}
+          <div>
+            <button
+              type="button"
+              className="w-full flex items-center justify-between text-base font-medium text-foreground py-2 border-b border-border/50"
+              onClick={() => setMobileClientesOpen((v) => !v)}
+            >
+              <span className="flex items-center gap-2"><Users className="w-4 h-4" />Clientes</span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${mobilClientesOpen ? "rotate-180" : ""}`} />
+            </button>
+            {mobilClientesOpen && (
+              <div className="pl-4 mt-2 flex flex-col gap-1">
+                {landingPages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-1">No hay páginas publicadas.</p>
+                ) : (
+                  landingPages.map((lp) => (
+                    <Link
+                      key={lp.slug}
+                      href={`/clientes/${lp.slug}`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-sm text-muted-foreground hover:text-primary py-1.5"
+                    >
+                      {lp.title}
+                    </Link>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
           <Button asChild className="w-full mt-2">
-            <a href="#cotizacion" onClick={() => setIsMobileMenuOpen(false)}>
+            <a href="/#cotizacion" onClick={() => setIsMobileMenuOpen(false)}>
               {ctaText}
             </a>
           </Button>

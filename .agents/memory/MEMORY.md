@@ -1,2 +1,5 @@
 - [Jardinería style editor conventions](jardineria-style-editor.md) — WYSIWYG admin style editor: draft state + postMessage preview, explicit-save, key/CSS-var sync rule.
 - [Admin auth tokens are in-memory](admin-auth-inmemory-tokens.md) — restarting api-server invalidates all admin sessions; "Token inválido o expirado" after a restart is expected, not a bug.
+- [Landing pages system](jardineria-landing-pages.md) — landing_pages + landing_contacts DB tables; public routes + admin CRUD added; frontend at /clientes/:slug with filtered portfolio; Navbar fetches active pages on mount.
+- [Visibility toggles pattern](jardineria-visibility-toggles.md) — show_quote_form / show_portfolio_section stored as site_settings strings "true"/"false"; Home reads via useSettings(); default "true" when key missing.
+- [Quill WYSIWYG in admin](jardineria-quill.md) — RichTextEditor at components/admin/rich-text-editor.tsx; useRef+useEffect init, lazy-loaded in landing-pages-panel to avoid bundle bloat; quill package installed in jardineria.

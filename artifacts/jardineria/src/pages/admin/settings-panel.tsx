@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import ColorPicker from "@/components/admin/color-picker";
 import ImageUpload from "@/components/admin/image-upload";
+import { Eye, EyeOff } from "lucide-react";
 
 interface SettingDef {
   key: string;
@@ -50,6 +52,19 @@ const CONTENT_DEFS: SettingDef[] = [
 const STORE_COLOR_DEFS: { key: string; label: string }[] = [
   { key: "color_store_primary", label: "Color primario de la tienda" },
   { key: "color_store_secondary", label: "Color secundario de la tienda" },
+];
+
+const VISIBILITY_TOGGLES = [
+  {
+    key: "show_portfolio_section",
+    label: "Sección de Portafolio",
+    description: "Muestra u oculta la galería de proyectos en la página principal.",
+  },
+  {
+    key: "show_quote_form",
+    label: "Formulario de Cotización",
+    description: "Muestra u oculta el formulario de solicitud de cotización al fondo del home.",
+  },
 ];
 
 function FieldRow({
@@ -123,6 +138,21 @@ export default function SettingsPanel() {
     }
   }
 
+  async function saveToggle(key: string, checked: boolean) {
+    const val = checked ? "true" : "false";
+    setValues((prev) => ({ ...prev, [key]: val }));
+    setSaving(key);
+    try {
+      await updateSetting(key, val);
+      setSaved(key);
+      setTimeout(() => setSaved(null), 2000);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSaving(null);
+    }
+  }
+
   if (loading) {
     return <div className="py-20 text-center text-muted-foreground">Cargando configuración...</div>;
   }
@@ -148,6 +178,42 @@ export default function SettingsPanel() {
           Edita la información clave del sitio web. Los cambios se aplican en tiempo real.
         </p>
       </div>
+
+      {/* Visibility Toggles */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Eye className="w-4 h-4 text-primary" /> Visibilidad de secciones (Home)
+          </CardTitle>
+          <CardDescription>
+            Activa o desactiva secciones de la página principal con un solo clic. El cambio aplica de inmediato.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {VISIBILITY_TOGGLES.map((toggle) => {
+            const isOn = (values[toggle.key] ?? "true") !== "false";
+            return (
+              <div key={toggle.key} className="flex items-center justify-between gap-4 p-3 rounded-lg border border-border">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    {isOn ? <Eye className="w-4 h-4 text-emerald-600" /> : <EyeOff className="w-4 h-4 text-muted-foreground" />}
+                    <p className="text-sm font-medium">{toggle.label}</p>
+                    {saved === toggle.key && (
+                      <span className="text-xs text-emerald-600 font-medium">✓ Guardado</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5 ml-6">{toggle.description}</p>
+                </div>
+                <Switch
+                  checked={isOn}
+                  disabled={saving === toggle.key}
+                  onCheckedChange={(v) => saveToggle(toggle.key, v)}
+                />
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

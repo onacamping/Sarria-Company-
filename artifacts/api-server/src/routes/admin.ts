@@ -13,6 +13,9 @@ import {
   testimonialsTable,
   servicesTable,
   certificatesTable,
+  landingPagesTable,
+  landingContactsTable,
+  insertLandingPageSchema,
 } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -288,6 +291,52 @@ router.put("/admin/services/:id", requireAdmin, async (req: Request, res: Respon
 
 router.delete("/admin/services/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   await db.delete(servicesTable).where(eq(servicesTable.id, Number(req.params["id"])));
+  res.json({ ok: true });
+});
+
+router.get("/admin/landing-pages", requireAdmin, async (_req: Request, res: Response): Promise<void> => {
+  const pages = await db.select().from(landingPagesTable).orderBy(desc(landingPagesTable.createdAt));
+  res.json(pages);
+});
+
+router.post("/admin/landing-pages", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  const parsed = insertLandingPageSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const [page] = await db.insert(landingPagesTable).values(parsed.data).returning();
+  res.status(201).json(page);
+});
+
+router.put("/admin/landing-pages/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  const id = Number(req.params["id"]);
+  const parsed = insertLandingPageSchema.partial().safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const [page] = await db
+    .update(landingPagesTable)
+    .set({ ...parsed.data, updatedAt: new Date() })
+    .where(eq(landingPagesTable.id, id))
+    .returning();
+  if (!page) { res.status(404).json({ error: "No encontrada" }); return; }
+  res.json(page);
+});
+
+router.delete("/admin/landing-pages/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  await db.delete(landingPagesTable).where(eq(landingPagesTable.id, Number(req.params["id"])));
+  res.json({ ok: true });
+});
+
+router.get("/admin/landing-contacts", requireAdmin, async (_req: Request, res: Response): Promise<void> => {
+  const contacts = await db.select().from(landingContactsTable).orderBy(desc(landingContactsTable.createdAt));
+  res.json(contacts);
+});
+
+router.delete("/admin/landing-contacts/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  await db.delete(landingContactsTable).where(eq(landingContactsTable.id, Number(req.params["id"])));
   res.json({ ok: true });
 });
 

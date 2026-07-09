@@ -7,6 +7,7 @@ import testimonialsRouter from "./testimonials";
 import settingsRouter from "./settings";
 import servicesRouter from "./services";
 import adminRouter from "./admin";
+import landingPagesRouter from "./landing-pages";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(testimonialsRouter);
 router.use(settingsRouter);
 router.use(servicesRouter);
 router.use(adminRouter);
+router.use(landingPagesRouter);
 
 export default router;

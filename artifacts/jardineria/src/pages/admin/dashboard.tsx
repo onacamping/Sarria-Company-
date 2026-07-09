@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { adminLogout, clearToken } from "@/lib/admin-api";
-import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf, ShieldCheck, Palette } from "lucide-react";
+import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf, ShieldCheck, Palette, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo-sarria-transparent.png";
 import SettingsPanel from "./settings-panel";
@@ -11,6 +11,7 @@ import TestimonialsPanel from "./testimonials-panel";
 import ServicesPanel from "./services-panel";
 import CertificatesPanel from "./certificates-panel";
 import StyleEditorPanel from "./style-editor-panel";
+import LandingPagesPanel from "./landing-pages-panel";
 
 type Section =
   | "settings"
@@ -20,11 +21,13 @@ type Section =
   | "products"
   | "quotes"
   | "testimonials"
-  | "certificates";
+  | "certificates"
+  | "landing-pages";
 
 const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "settings", label: "Configuración", icon: Settings },
   { id: "style", label: "Editor Visual", icon: Palette },
+  { id: "landing-pages", label: "Landing Pages", icon: Globe },
   { id: "services", label: "Servicios", icon: Leaf },
   { id: "projects", label: "Portafolio", icon: FolderOpen },
   { id: "products", label: "Tienda", icon: ShoppingBag },
@@ -115,6 +118,7 @@ export default function Dashboard({ onLogout }: Props) {
   const panelMap: Record<Section, React.ReactNode> = {
     settings: <SettingsPanel />,
     style: <StyleEditorPanel onDirtyChange={setStyleDirty} />,
+    "landing-pages": <LandingPagesPanel />,
     services: <ServicesPanel />,
     projects: <ProjectsPanel />,
     products: <ProductsPanel />,

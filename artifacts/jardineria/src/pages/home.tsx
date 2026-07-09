@@ -10,8 +10,13 @@ import Testimonials from "@/components/home/testimonials";
 import QuoteForm from "@/components/home/quote-form";
 import Footer from "@/components/home/footer";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
+import { useSettings } from "@/lib/site-settings";
 
 export default function Home() {
+  const settings = useSettings();
+  const showPortfolio = (settings["show_portfolio_section"] ?? "true") !== "false";
+  const showQuoteForm = (settings["show_quote_form"] ?? "true") !== "false";
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -65,10 +70,10 @@ export default function Home() {
           <Stats />
           <Services />
           <ClientTypes />
-          <Portfolio />
+          {showPortfolio && <Portfolio />}
           <About />
           <Testimonials />
-          <QuoteForm />
+          {showQuoteForm && <QuoteForm />}
         </main>
         <Footer />
         <WhatsAppButton />

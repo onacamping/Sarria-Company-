@@ -5,3 +5,5 @@ export * from "./testimonials";
 export * from "./site-settings";
 export * from "./services";
 export * from "./certificates";
+export * from "./landing-pages";
+export * from "./landing-contacts";

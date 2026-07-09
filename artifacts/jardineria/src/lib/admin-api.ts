@@ -100,3 +100,15 @@ export const createCertificate = (d: any) =>
   certReq("/certificates", { method: "POST", body: JSON.stringify(d) });
 export const deleteCertificate = (id: number) =>
   certReq(`/certificates/${id}`, { method: "DELETE" });
+
+export const getAdminLandingPages = () => req<any[]>("/landing-pages");
+export const createLandingPage = (d: any) =>
+  req("/landing-pages", { method: "POST", body: JSON.stringify(d) });
+export const updateLandingPage = (id: number, d: any) =>
+  req(`/landing-pages/${id}`, { method: "PUT", body: JSON.stringify(d) });
+export const deleteLandingPage = (id: number) =>
+  req(`/landing-pages/${id}`, { method: "DELETE" });
+
+export const getAdminLandingContacts = () => req<any[]>("/landing-contacts");
+export const deleteLandingContact = (id: number) =>
+  req(`/landing-contacts/${id}`, { method: "DELETE" });
