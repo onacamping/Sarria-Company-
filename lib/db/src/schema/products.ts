@@ -10,6 +10,8 @@ export const productsTable = pgTable("products", {
   unit: text("unit").notNull().default("unidad"),
   inStock: boolean("in_stock").notNull().default(true),
   featured: boolean("featured").notNull().default(false),
+  salePrice: integer("sale_price"),
+  discountLabel: text("discount_label"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

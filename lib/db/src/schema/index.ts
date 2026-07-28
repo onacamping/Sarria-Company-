@@ -7,3 +7,4 @@ export * from "./services";
 export * from "./certificates";
 export * from "./landing-pages";
 export * from "./landing-contacts";
+export * from "./promo-codes";

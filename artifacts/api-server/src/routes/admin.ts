@@ -16,6 +16,8 @@ import {
   landingPagesTable,
   landingContactsTable,
   insertLandingPageSchema,
+  promoCodesTable,
+  insertPromoCodeSchema,
 } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -337,6 +339,35 @@ router.get("/admin/landing-contacts", requireAdmin, async (_req: Request, res: R
 
 router.delete("/admin/landing-contacts/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   await db.delete(landingContactsTable).where(eq(landingContactsTable.id, Number(req.params["id"])));
+  res.json({ ok: true });
+});
+
+// ─── Promo Codes ──────────────────────────────────────────────────────────────
+router.get("/admin/promo-codes", requireAdmin, async (_req: Request, res: Response): Promise<void> => {
+  const codes = await db.select().from(promoCodesTable).orderBy(desc(promoCodesTable.createdAt));
+  res.json(codes);
+});
+
+router.post("/admin/promo-codes", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  const parsed = insertPromoCodeSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const data = { ...parsed.data, code: (parsed.data.code as string).toUpperCase() };
+  const [code] = await db.insert(promoCodesTable).values(data).returning();
+  res.status(201).json(code);
+});
+
+router.put("/admin/promo-codes/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  const id = Number(req.params["id"]);
+  const parsed = insertPromoCodeSchema.partial().safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const data = parsed.data.code ? { ...parsed.data, code: (parsed.data.code as string).toUpperCase() } : parsed.data;
+  const [code] = await db.update(promoCodesTable).set({ ...data, updatedAt: new Date() }).where(eq(promoCodesTable.id, id)).returning();
+  if (!code) { res.status(404).json({ error: "Código no encontrado" }); return; }
+  res.json(code);
+});
+
+router.delete("/admin/promo-codes/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  await db.delete(promoCodesTable).where(eq(promoCodesTable.id, Number(req.params["id"])));
   res.json({ ok: true });
 });
 

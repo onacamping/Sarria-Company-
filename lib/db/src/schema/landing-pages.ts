@@ -15,6 +15,7 @@ export const landingPagesTable = pgTable("landing_pages", {
   formDescription: text("form_description"),
   active: boolean("active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  customStyles: text("custom_styles").notNull().default("{}"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

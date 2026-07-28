@@ -8,6 +8,7 @@ import settingsRouter from "./settings";
 import servicesRouter from "./services";
 import adminRouter from "./admin";
 import landingPagesRouter from "./landing-pages";
+import promoCodesRouter from "./promo-codes";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(settingsRouter);
 router.use(servicesRouter);
 router.use(adminRouter);
 router.use(landingPagesRouter);
+router.use(promoCodesRouter);
 
 export default router;

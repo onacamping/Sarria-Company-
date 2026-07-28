@@ -11,6 +11,8 @@ function serializeProduct(p: typeof productsTable.$inferSelect) {
     name: p.name,
     description: p.description,
     price: p.price,
+    salePrice: p.salePrice ?? null,
+    discountLabel: p.discountLabel ?? null,
     category: p.category,
     imageUrl: p.imageUrl,
     unit: p.unit,

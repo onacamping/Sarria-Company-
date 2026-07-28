@@ -112,3 +112,19 @@ export const deleteLandingPage = (id: number) =>
 export const getAdminLandingContacts = () => req<any[]>("/landing-contacts");
 export const deleteLandingContact = (id: number) =>
   req(`/landing-contacts/${id}`, { method: "DELETE" });
+
+export const getAdminPromoCodes = () => req<any[]>("/promo-codes");
+export const createPromoCode = (d: any) =>
+  req("/promo-codes", { method: "POST", body: JSON.stringify(d) });
+export const updatePromoCode = (id: number, d: any) =>
+  req(`/promo-codes/${id}`, { method: "PUT", body: JSON.stringify(d) });
+export const deletePromoCode = (id: number) =>
+  req(`/promo-codes/${id}`, { method: "DELETE" });
+
+const publicBase = () => (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+export const validatePromoCode = async (code: string) => {
+  const res = await fetch(`${publicBase()}/api/promo-codes/validate/${encodeURIComponent(code)}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as any).error ?? `HTTP ${res.status}`);
+  return data as { id: number; code: string; type: string; value: number; description: string; minOrderAmount: number; appliesTo: string };
+};
