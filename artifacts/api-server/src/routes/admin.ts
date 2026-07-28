@@ -170,6 +170,8 @@ router.post("/admin/products", requireAdmin, async (req: Request, res: Response)
       name: d.name, description: d.description, price: Number(d.price), category: d.category,
       imageUrl: d.imageUrl ?? "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=800",
       unit: d.unit ?? "unidad", inStock: d.inStock ?? true, featured: d.featured ?? false,
+      salePrice: d.salePrice != null && d.salePrice !== "" ? Number(d.salePrice) : null,
+      discountLabel: d.discountLabel || null,
     })
     .returning();
   res.json(product);
@@ -183,6 +185,8 @@ router.put("/admin/products/:id", requireAdmin, async (req: Request, res: Respon
     .set({
       name: d.name, description: d.description, price: Number(d.price), category: d.category,
       imageUrl: d.imageUrl, unit: d.unit ?? "unidad", inStock: d.inStock ?? true, featured: d.featured ?? false,
+      salePrice: d.salePrice != null && d.salePrice !== "" ? Number(d.salePrice) : null,
+      discountLabel: d.discountLabel || null,
     })
     .where(eq(productsTable.id, id))
     .returning();

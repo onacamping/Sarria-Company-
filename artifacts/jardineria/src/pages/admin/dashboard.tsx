@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { adminLogout, clearToken } from "@/lib/admin-api";
-import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf, ShieldCheck, Palette, Globe } from "lucide-react";
+import { Settings, FolderOpen, ShoppingBag, MessageSquare, Star, LogOut, Menu, Leaf, ShieldCheck, Palette, Globe, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo-sarria-transparent.png";
 import SettingsPanel from "./settings-panel";
@@ -12,6 +12,7 @@ import ServicesPanel from "./services-panel";
 import CertificatesPanel from "./certificates-panel";
 import StyleEditorPanel from "./style-editor-panel";
 import LandingPagesPanel from "./landing-pages-panel";
+import PromoCodesPanel from "./promo-codes-panel";
 
 type Section =
   | "settings"
@@ -22,7 +23,8 @@ type Section =
   | "quotes"
   | "testimonials"
   | "certificates"
-  | "landing-pages";
+  | "landing-pages"
+  | "promo-codes";
 
 const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "settings", label: "Configuración", icon: Settings },
@@ -31,6 +33,7 @@ const navItems: { id: Section; label: string; icon: React.ElementType }[] = [
   { id: "services", label: "Servicios", icon: Leaf },
   { id: "projects", label: "Portafolio", icon: FolderOpen },
   { id: "products", label: "Tienda", icon: ShoppingBag },
+  { id: "promo-codes", label: "Códigos Promo", icon: Tag },
   { id: "quotes", label: "Cotizaciones", icon: MessageSquare },
   { id: "testimonials", label: "Testimonios", icon: Star },
   { id: "certificates", label: "Certificados", icon: ShieldCheck },
@@ -122,6 +125,7 @@ export default function Dashboard({ onLogout }: Props) {
     services: <ServicesPanel />,
     projects: <ProjectsPanel />,
     products: <ProductsPanel />,
+    "promo-codes": <PromoCodesPanel />,
     quotes: <QuotesPanel />,
     testimonials: <TestimonialsPanel />,
     certificates: <CertificatesPanel />,

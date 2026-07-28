@@ -1,0 +1,262 @@
+Skip to content
+
+AI
+
+100%
+
+
+
+
+
+
+
+artifacts/jardineria/src/lib/admin-api.ts
+-0
++16
+export const getAdminLandingContacts = () => req<any[]>("/landing-contacts");
+export const deleteLandingContact = (id: number) =>
+  req(`/landing-contacts/${id}`, { method: "DELETE" });
+export const getAdminPromoCodes = () => req<any[]>("/promo-codes");
+export const createPromoCode = (d: any) =>
+  req("/promo-codes", { method: "POST", body: JSON.stringify(d) });
+export const updatePromoCode = (id: number, d: any) =>
+  req(`/promo-codes/${id}`, { method: "PUT", body: JSON.stringify(d) });
+export const deletePromoCode = (id: number) =>
+  req(`/promo-codes/${id}`, { method: "DELETE" });
+const publicBase = () => (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+export const validatePromoCode = async (code: string) => {
+  const res = await fetch(`${publicBase()}/api/promo-codes/validate/${encodeURIComponent(code)}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as any).error ?? `HTTP ${res.status}`);
+  return data as { id: number; code: string; type: string; value: number; description: string; minOrderAmount: number; appliesTo: string };
+};
+no veo la pagina
+
+19 hours ago
+Configuring app workflows
+
+Configuring app workflows
+The app isn't running yet — no workflows are configured. Let me get it set up. First I need a database.
+
+
+4 actions
+Let me get everything running — database first, then the workflows.
+
+
+5 actions
+DATABASE_URL is managed automatically by Replit — no need to set it. Let me install dependencies, push the schema, and start the workflows.
+
+
+4 actions
+Schema is up to date. Now starting both services.
+
+
+10 actions
+Both fail because PORT isn't being injected. I'll set it explicitly in each workflow command.
+
+
+6 actions
+Also needs BASE_PATH. Adding it now.
+
+
+3 actions
+Both services are up. Let me verify the app looks good.
+
+
+5 actions
+Both services are running — the frontend (Vite on port 22763) and the API server (port 8080). You should be able to see the site in the preview pane now. Select "Sitio Web Jardinería" from the artifact dropdown if it isn't already showing.
+
+
+Worked for 2 minutes
+
+Checkpoint made
+19 hours ago
+no veo nada
+
+18 hours ago
+
+3 actions
+The artifacts exist on disk but aren't registered with Replit's preview system. Let me register them.
+
+
+1 action
+Couldn't present artifacts/jardineria: Artifact artifacts/jardineria not found
+
+10 actions
+Both services are registered and running. Let me present the site.
+
+
+Presented output
+Sitio Web Jardinería
+Website
+
+3 actions
+El sitio está funcionando. Ya puedes verlo en el panel de vista previa.
+
+
+Worked for 1 minute
+agrega la funcion en el panel de admin, para que todas las landing page que se creen, se puedan editar con el editor visual, y que sea bastante perzonalizable, y tambien que tengan la funcion de aplicar valores del manual de marca
+
+tambien quiero que en la tienda haya una funcion para crear codigos promocionales, promociones de productos y codigos de descuentos.
+
+17 minutes ago
+
+4 actions
+Son dos funcionalidades grandes e independientes. Voy a explorar el código necesario antes de construir.
+
+
+Show less
+
+Read files
+
+Read files
+
+Read lib/db/src/schema/index.ts
+
+Read lib/api-spec/openapi.yaml
+Checking logs and files
+
+Checking logs and files
+
+Read files
+
+Read files
+
+Read files
+
+Read files
+Investigating API failures
+
+Investigating API failures
+Let me check the API failure and read the remaining files I need simultaneously.
+
+
+Show less
+
+Refreshed logs
+
+Read files
+
+Read files
+Fixing API server port conflict
+
+Fixing API server port conflict
+API server has a port conflict from the old instance. Let me restart it and simultaneously explore the remaining files I need.
+
+
+Show less
+Restarted workflow artifacts/api-server: API Server
+
+Found files
+
+Read files
+Implementing visual editor features
+
+Implementing visual editor features
+API server is up. Now I have enough context. Let me look at a few more files before building, then execute everything in parallel.
+
+
+Show less
+
+Read files
+
+Found files
+Analyzing codebases
+
+Analyzing codebases
+
+Read files
+
+Read files
+Implementing parallel feature development
+
+Implementing parallel feature development
+Tengo todo el contexto. Son dos funcionalidades grandes — las voy a construir en paralelo. Empiezo por la capa de DB y API, luego el frontend.
+
+Plan:
+
+DB: campo customStyles en landing pages + salePrice/discountLabel en productos + nueva tabla promo_codes
+API: endpoints CRUD para promo codes
+Admin: editor visual para landing pages (colores, fuentes, secciones, botón "Aplicar manual de marca")
+Admin: panel de códigos promocionales
+Tienda: precios en oferta + entrada de código promocional
+
+Show less
+
+Created promo-codes.ts
+Parallelizing file building
+
+Parallelizing file building
+
+Edited landing-pages.ts
+Applying schema changes
+
+Applying schema changes
+
+Edited products.ts
+Parallelizing database and API updates
+
+Parallelizing database and API updates
+
+Edited index.ts
+Parallelizing tasks
+
+Parallelizing tasks
+
+Ran the push script
+
+Read files
+
+Read files
+Building remaining pieces
+
+Building remaining pieces
+
+Read files
+
+Searched for "^import|promoCode|promo…"
+Batching API and frontend changes
+
+Batching API and frontend changes
+Good, API server is back up. Now let me write all the code in parallel across backend and frontend.
+
+
+Show less
+
+Edited admin.ts
+Writing code changes
+
+Writing code changes
+
+Edited admin.ts
+Batching parallel tasks
+
+Batching parallel tasks
+API server running. Now writing all 8 remaining files in parallel — backend routes, admin-api, dashboard, panels.
+
+
+Show less
+
+Created promo-codes.ts
+
+Edited products.ts
+
+Edited index.ts
+
+Edited admin-api.ts
+You've reached your monthly free quota limit. It will reset on August 20, 2026.
+
+
+Worked for 4 minutes
+agrega la funcion en el panel de admin, para que todas las landing page que se creen, se puedan editar con el editor visual, y que sea bastante perzonalizable, y tambien que tengan la funcion de aplicar valores del manual de marca tambien quiero que en la tienda haya una funcion para crear codigos promocionales, promociones de productos y codigos de descuentos. Agent activity Son dos funcionalidades grandes e independientes. Voy a explorar el código necesario antes de construir. Agent activity Agent activity Let me check the API failure and read the remaining files I need simultaneously. Agent activity API server has a port conflict from the old instance. Let me restart it and simultaneously explore the remaining files I need. Agent activity API server is up. Now I have enough context. Let me look at a few more files before building, then execute everything in parallel. Agent activity Tengo todo el contexto. Son dos funcionalidades grandes — las voy a construir en paralelo. Empiezo por la capa de DB y API, luego el frontend. **Plan:** 1. DB: campo `customStyles` en landing pages + `salePrice`/`discountLabel` en productos + nueva tabla `promo_codes` 2. API: endpoints CRUD para promo codes 3. Admin: editor visual para landing pages (colores, fuentes, secciones, botón "Aplicar manual de marca") 4. Admin: panel de códigos promocionales 5. Tienda: precios en oferta + entrada de código promocional Agent activity Good, API server is back up. Now let me write all the code in parallel across backend and frontend. Agent activity Agent activity API server running. Now writing all 8 remaining files in parallel — backend routes, admin-api, dashboard, panels. Agent activity Agent activity Agent activity
+
+Scroll to latest
+You're out of credits.
+
+Message Agent...
+
+
+
+
+
+Loading... - Replit

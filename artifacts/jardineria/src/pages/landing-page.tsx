@@ -12,9 +12,27 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { getLandingPage, submitLandingContact, type LandingPage as LandingPageType } from "@/lib/landing-api";
+import { getLandingPage, submitLandingContact, type LandingPage as LandingPageType, type LandingCustomStyles } from "@/lib/landing-api";
 import { useListProjects, useGetProject } from "@workspace/api-client-react";
 import { MapPin, Calendar, Maximize, Tag, CheckCircle, AlertCircle } from "lucide-react";
+
+function parseStyles(raw: string): LandingCustomStyles {
+  try { return JSON.parse(raw || "{}"); } catch { return {}; }
+}
+
+function buildCssVars(cs: LandingCustomStyles): React.CSSProperties {
+  return {
+    ["--lp-hero-bg" as string]: cs.heroBg || "hsl(var(--primary))",
+    ["--lp-hero-text" as string]: cs.heroText || "#ffffff",
+    ["--lp-accent" as string]: cs.accentColor || "hsl(var(--secondary))",
+    ["--lp-btn-bg" as string]: cs.buttonBg || "hsl(var(--secondary))",
+    ["--lp-btn-text" as string]: cs.buttonText || "#ffffff",
+    ["--lp-section-bg" as string]: cs.sectionBg || "#ffffff",
+    ["--lp-content-text" as string]: cs.contentText || "hsl(var(--foreground))",
+    ["--lp-font-heading" as string]: cs.fontHeading ? `'${cs.fontHeading}', sans-serif` : "var(--font-heading, inherit)",
+    ["--lp-font-body" as string]: cs.fontBody ? `'${cs.fontBody}', sans-serif` : "var(--font-body, inherit)",
+  } as React.CSSProperties;
+}
 
 export default function LandingPage() {
   const params = useParams<{ slug: string }>();
@@ -35,13 +53,16 @@ export default function LandingPage() {
   if (loading) return <LandingPageSkeleton />;
   if (notFound || !page) return <LandingNotFound />;
 
+  const cs = parseStyles(page.customStyles ?? "{}");
+  const cssVars = buildCssVars(cs);
+
   return (
     <>
       <Helmet>
         <title>{page.title} | Sarria Company</title>
         {page.metaDescription && <meta name="description" content={page.metaDescription} />}
       </Helmet>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen" style={cssVars}>
         <Navbar />
         <main>
           <LandingHero page={page} />
@@ -58,23 +79,44 @@ export default function LandingPage() {
 
 function LandingHero({ page }: { page: LandingPageType }) {
   return (
-    <section className="relative bg-primary text-primary-foreground pt-32 pb-20 px-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary/80" />
+    <section
+      className="relative text-primary-foreground pt-32 pb-20 px-4"
+      style={{
+        background: "var(--lp-hero-bg)",
+        color: "var(--lp-hero-text)",
+        fontFamily: "var(--lp-font-heading)",
+      }}
+    >
+      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, transparent 0%, rgba(0,0,0,0.15) 100%)" }} />
       <div className="container mx-auto relative z-10 text-center max-w-3xl">
-        <span className="inline-block bg-secondary/20 text-secondary-foreground text-xs font-semibold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider border border-secondary/30">
+        <span
+          className="inline-block text-xs font-semibold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider"
+          style={{
+            background: "var(--lp-accent, hsl(var(--secondary)))" + "33",
+            color: "var(--lp-hero-text)",
+            border: "1px solid var(--lp-hero-text)" + "44",
+          }}
+        >
           {categoryLabel(page.category)}
         </span>
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
           {page.heroTitle ?? page.title}
         </h1>
         {page.heroSubtitle && (
-          <p className="text-lg md:text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto" style={{ opacity: 0.85 }}>
             {page.heroSubtitle}
           </p>
         )}
-        <Button asChild size="lg" variant="secondary" className="font-semibold">
-          <a href="#contacto-landing">Solicitar información</a>
-        </Button>
+        <a
+          href="#contacto-landing"
+          className="inline-block font-semibold px-8 py-3 rounded-xl text-base transition-opacity hover:opacity-90"
+          style={{
+            background: "var(--lp-btn-bg)",
+            color: "var(--lp-btn-text)",
+          }}
+        >
+          Solicitar información
+        </a>
       </div>
     </section>
   );
@@ -82,7 +124,14 @@ function LandingHero({ page }: { page: LandingPageType }) {
 
 function LandingContent({ content }: { content: string }) {
   return (
-    <section className="py-16 bg-white">
+    <section
+      className="py-16"
+      style={{
+        background: "var(--lp-section-bg)",
+        color: "var(--lp-content-text)",
+        fontFamily: "var(--lp-font-body)",
+      }}
+    >
       <div className="container mx-auto px-4 md:px-6 max-w-4xl">
         <div
           className="prose prose-lg prose-headings:text-primary prose-a:text-secondary max-w-none"
@@ -123,7 +172,7 @@ function LandingPortfolio({ category, title }: { category: string; title: string
         ) : (
           <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
-              {projects?.map((p) => (
+              {projects?.map((p: any) => (
                 <motion.div
                   key={p.id}
                   layout
@@ -218,7 +267,11 @@ function LandingContactForm({ page }: { page: LandingPageType }) {
   }
 
   return (
-    <section id="contacto-landing" className="py-20 bg-muted/30">
+    <section
+      id="contacto-landing"
+      className="py-20"
+      style={{ background: "var(--lp-section-bg, #f7f7f5)" }}
+    >
       <div className="container mx-auto px-4 md:px-6 max-w-2xl">
         <div className="text-center mb-10">
           <SectionHeading title={page.formTitle} subtitle="Contáctenos" alignment="center" />
@@ -264,9 +317,14 @@ function LandingContactForm({ page }: { page: LandingPageType }) {
               <Label htmlFor="lc-message">Mensaje / Necesidades</Label>
               <Textarea id="lc-message" rows={4} value={form.message} onChange={set("message")} placeholder="Cuéntenos sobre su proyecto o necesidad de mantenimiento..." />
             </div>
-            <Button type="submit" disabled={sending} className="w-full" size="lg">
+            <button
+              type="submit"
+              disabled={sending}
+              className="w-full font-semibold py-3 px-6 rounded-xl text-base transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: "var(--lp-btn-bg, hsl(var(--primary)))", color: "var(--lp-btn-text, #fff)" }}
+            >
               {sending ? "Enviando..." : "Enviar mensaje"}
-            </Button>
+            </button>
           </form>
         )}
       </div>

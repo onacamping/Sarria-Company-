@@ -13,10 +13,12 @@ import ImageUpload from "@/components/admin/image-upload";
 interface Product {
   id: number; name: string; description: string; price: number;
   category: string; image_url: string; unit: string; in_stock: boolean; featured: boolean;
+  sale_price?: number | null; discount_label?: string | null;
 }
 
 const EMPTY: Omit<Product, "id"> = {
   name: "", description: "", price: 0, category: "", image_url: "", unit: "unidad", in_stock: true, featured: false,
+  sale_price: null, discount_label: "",
 };
 
 const CATEGORIES = [
@@ -44,14 +46,19 @@ export default function ProductsPanel() {
   function openAdd() { setEditing(null); setForm(EMPTY); setDialogOpen(true); }
   function openEdit(p: Product) {
     setEditing(p);
-    setForm({ name: p.name, description: p.description, price: p.price, category: p.category, image_url: p.image_url, unit: p.unit, in_stock: p.in_stock, featured: p.featured });
+    setForm({ name: p.name, description: p.description, price: p.price, category: p.category, image_url: p.image_url, unit: p.unit, in_stock: p.in_stock, featured: p.featured, sale_price: p.sale_price ?? null, discount_label: p.discount_label ?? "" });
     setDialogOpen(true);
   }
 
   async function handleSave() {
     setSaving(true);
     try {
-      const payload = { name: form.name, description: form.description, price: Number(form.price), category: form.category, imageUrl: form.image_url, unit: form.unit, inStock: form.in_stock, featured: form.featured };
+      const payload = {
+        name: form.name, description: form.description, price: Number(form.price), category: form.category,
+        imageUrl: form.image_url, unit: form.unit, inStock: form.in_stock, featured: form.featured,
+        salePrice: form.sale_price !== null && form.sale_price !== undefined && String(form.sale_price) !== "" ? Number(form.sale_price) : null,
+        discountLabel: (form.discount_label || "").trim() || null,
+      };
       if (editing) { await updateProduct(editing.id, payload); } else { await createProduct(payload); }
       setDialogOpen(false);
       await load();
@@ -137,7 +144,7 @@ export default function ProductsPanel() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Precio (COP) *</Label>
+                <Label>Precio normal (COP) *</Label>
                 <Input type="number" value={form.price} onChange={f("price")} placeholder="0" min={0} />
               </div>
               <div className="space-y-1.5">
@@ -146,6 +153,30 @@ export default function ProductsPanel() {
                   {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
+            </div>
+            <div className="rounded-lg border border-dashed border-orange-300 bg-orange-50/50 p-3 space-y-3">
+              <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Promoción / Precio en oferta</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Precio de oferta (COP)</Label>
+                  <Input
+                    type="number"
+                    value={form.sale_price ?? ""}
+                    onChange={(e) => setForm((p) => ({ ...p, sale_price: e.target.value === "" ? null : Number(e.target.value) }))}
+                    placeholder="Dejar vacío = sin oferta"
+                    min={0}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Etiqueta de descuento</Label>
+                  <Input
+                    value={form.discount_label ?? ""}
+                    onChange={f("discount_label")}
+                    placeholder="Ej: -20%, Temporada, Black Friday"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">Si el precio de oferta es menor al precio normal, se mostrará el precio original tachado en la tienda.</p>
             </div>
             <div className="space-y-1.5">
               <Label>Descripción *</Label>

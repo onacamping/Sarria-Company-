@@ -13,8 +13,21 @@ export interface LandingPage {
   formDescription: string | null;
   active: boolean;
   sortOrder: number;
+  customStyles: string; // JSON string: LandingCustomStyles
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LandingCustomStyles {
+  heroBg?: string;
+  heroText?: string;
+  accentColor?: string;
+  buttonBg?: string;
+  buttonText?: string;
+  sectionBg?: string;
+  contentText?: string;
+  fontHeading?: string;
+  fontBody?: string;
 }
 
 export interface LandingContact {
