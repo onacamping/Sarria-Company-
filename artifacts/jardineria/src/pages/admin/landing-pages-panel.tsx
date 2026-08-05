@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import {
   getAdminLandingPages,
   createLandingPage,
@@ -15,10 +15,9 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Globe, Plus, Pencil, Trash2, X, Check, ChevronDown, ChevronUp,
-  Users, Inbox, ExternalLink, Eye, EyeOff, Sparkles, Palette, Type,
+  Users, Inbox, ExternalLink, Eye, EyeOff, Sparkles, Palette, Type, Layout,
 } from "lucide-react";
-
-const RichTextEditor = lazy(() => import("@/components/admin/rich-text-editor"));
+import BlockEditor, { type Block } from "@/components/admin/block-editor";
 
 interface LandingPage {
   id: number;
@@ -34,6 +33,7 @@ interface LandingPage {
   active: boolean;
   sortOrder: number;
   customStyles: string;
+  blocks: string;
   createdAt: string;
 }
 
@@ -51,12 +51,17 @@ interface LandingContact {
 
 interface StyleForm {
   heroBg: string;
+  heroGradient: boolean;
+  heroGradientEnd: string;
   heroText: string;
   accentColor: string;
   buttonBg: string;
   buttonText: string;
+  buttonRadius: string; // "sm" | "md" | "lg" | "full"
   sectionBg: string;
   contentText: string;
+  portfolioBg: string;
+  portfolioText: string;
   fontHeading: string;
   fontBody: string;
 }
@@ -75,27 +80,39 @@ const FONT_OPTIONS = [
   "Playfair Display", "Merriweather", "Inter", "Nunito", "Raleway", "Oswald",
 ];
 
-// Colores del manual de marca Sarria Company
+// ── Colores extraídos del Manual de Identidad Visual Sarria Company ──
+// Azul Principal #4164AE · Verde Medio #47A86E · Lima Claro #8DC665
+// Gris Tipográfico #535353 · Degradado: #4164AE → #3DA39A
 const BRAND_STYLE_DEFAULTS: StyleForm = {
-  heroBg: "#145c30",   // verde oscuro (hsl 153 60% 20%)
+  heroBg: "#4164AE",          // Azul Principal
+  heroGradient: true,
+  heroGradientEnd: "#3DA39A", // Azul → Teal (degradado del logo)
   heroText: "#ffffff",
-  accentColor: "#b56720", // ámbar (hsl 28 60% 45%)
-  buttonBg: "#b56720",
+  accentColor: "#8DC665",     // Lima Claro
+  buttonBg: "#4164AE",        // Azul Principal
   buttonText: "#ffffff",
+  buttonRadius: "lg",
   sectionBg: "#ffffff",
-  contentText: "#1a2f1a",
+  contentText: "#535353",     // Gris Tipográfico
+  portfolioBg: "#4164AE",     // Azul Principal
+  portfolioText: "#ffffff",
   fontHeading: "Poppins",
   fontBody: "Metropolis",
 };
 
 const DEFAULT_STYLE: StyleForm = {
-  heroBg: "#145c30",
+  heroBg: "#4164AE",
+  heroGradient: true,
+  heroGradientEnd: "#3DA39A",
   heroText: "#ffffff",
-  accentColor: "#b56720",
-  buttonBg: "#b56720",
+  accentColor: "#8DC665",
+  buttonBg: "#4164AE",
   buttonText: "#ffffff",
+  buttonRadius: "lg",
   sectionBg: "#ffffff",
-  contentText: "#1a2f1a",
+  contentText: "#535353",
+  portfolioBg: "#4164AE",
+  portfolioText: "#ffffff",
   fontHeading: "Poppins",
   fontBody: "Metropolis",
 };
@@ -132,7 +149,11 @@ function slugify(text: string) {
     .replace(/\s+/g, "-");
 }
 
-type EditorTab = "content" | "style";
+function parseBlocks(raw: string): Block[] {
+  try { return JSON.parse(raw || "[]"); } catch { return []; }
+}
+
+type EditorTab = "content" | "blocks" | "style";
 
 export default function LandingPagesPanel() {
   const [activeTab, setActiveTab] = useState<"pages" | "contacts">("pages");
@@ -143,6 +164,7 @@ export default function LandingPagesPanel() {
   const [editorTab, setEditorTab] = useState<EditorTab>("content");
   const [form, setForm] = useState(emptyForm());
   const [styles, setStyles] = useState<StyleForm>({ ...DEFAULT_STYLE });
+  const [blocks, setBlocks] = useState<Block[]>([]);
   const [saving, setSaving] = useState(false);
   const [expandedContact, setExpandedContact] = useState<number | null>(null);
 
@@ -164,6 +186,7 @@ export default function LandingPagesPanel() {
   function startNew() {
     setForm(emptyForm());
     setStyles({ ...DEFAULT_STYLE });
+    setBlocks([]);
     setEditorTab("content");
     setEditing("new");
   }
@@ -183,6 +206,7 @@ export default function LandingPagesPanel() {
       sortOrder: page.sortOrder,
     });
     setStyles(parseStyles(page.customStyles));
+    setBlocks(parseBlocks((page as any).blocks ?? "[]"));
     setEditorTab("content");
     setEditing(page.id);
   }
@@ -216,6 +240,7 @@ export default function LandingPagesPanel() {
         metaDescription: form.metaDescription || null,
         formDescription: form.formDescription || null,
         customStyles: JSON.stringify(styles),
+        blocks: JSON.stringify(blocks),
       };
       if (editing === "new") {
         await createLandingPage(payload);
@@ -266,7 +291,7 @@ export default function LandingPagesPanel() {
         </div>
 
         {/* Editor Tabs */}
-        <div className="flex gap-1 border border-border rounded-lg p-1 bg-muted/30 w-fit">
+        <div className="flex gap-1 border border-border rounded-lg p-1 bg-muted/30 w-fit flex-wrap">
           <button
             type="button"
             onClick={() => setEditorTab("content")}
@@ -276,7 +301,18 @@ export default function LandingPagesPanel() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Type className="w-4 h-4" /> Contenido
+            <Type className="w-4 h-4" /> Configuración
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditorTab("blocks")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              editorTab === "blocks"
+                ? "bg-white shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Layout className="w-4 h-4" /> Constructor de Página
           </button>
           <button
             type="button"
@@ -374,22 +410,20 @@ export default function LandingPagesPanel() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Contenido principal (WYSIWYG)</CardTitle>
-                <CardDescription>
-                  Escribe textos persuasivos, beneficios, propuestas de valor, etc. Aparece entre el hero y el portafolio.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Suspense fallback={<div className="h-64 bg-muted rounded-lg animate-pulse" />}>
-                  <RichTextEditor
-                    value={form.content}
-                    onChange={(html) => set("content")(html)}
-                    placeholder="Describe los servicios especializados para este segmento de clientes..."
-                    height={360}
-                  />
-                </Suspense>
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="py-4 px-5 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-primary flex items-center gap-2">
+                    <Layout className="w-4 h-4" /> Constructor de Página
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Agrega encabezados, texto, imágenes, carruseles y videos en la pestaña <strong>Constructor de Página</strong>.
+                    {blocks.length > 0 && <> · <span className="text-primary font-medium">{blocks.length} bloque{blocks.length !== 1 ? "s" : ""} configurado{blocks.length !== 1 ? "s" : ""}</span></>}
+                  </p>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => setEditorTab("blocks")} className="shrink-0">
+                  <Layout className="w-4 h-4 mr-1" /> Editar bloques
+                </Button>
               </CardContent>
             </Card>
 
@@ -412,6 +446,25 @@ export default function LandingPagesPanel() {
           </>
         )}
 
+        {/* ── BLOCKS TAB ── */}
+        {editorTab === "blocks" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Layout className="w-4 h-4 text-primary" /> Constructor de Página
+              </CardTitle>
+              <CardDescription>
+                Agrega encabezados, texto enriquecido, imágenes, carruseles de fotos y videos de YouTube.
+                Arrastra los bloques con el ícono <strong>⣿</strong> o usa los botones <strong>↑↓</strong> para reordenar.
+                Los cambios se guardan al hacer clic en "Guardar cambios".
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BlockEditor blocks={blocks} onChange={setBlocks} />
+            </CardContent>
+          </Card>
+        )}
+
         {/* ── STYLE TAB ── */}
         {editorTab === "style" && (
           <>
@@ -420,52 +473,104 @@ export default function LandingPagesPanel() {
               <CardContent className="py-4 px-5">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <div className="flex-1">
-                    <p className="font-semibold text-sm text-primary">Manual de marca Sarria Company</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Aplica automáticamente los colores y tipografías oficiales de la marca en esta landing page.</p>
+                    <p className="font-semibold text-sm text-primary">Manual de Identidad Visual — Sarria Company</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Aplica los colores oficiales: Azul Principal + Teal (degradado del logo), Lima Claro, Gris Tipográfico y tipografías Poppins + Metropolis.</p>
                   </div>
                   <Button variant="default" size="sm" onClick={applyBrandManual} className="shrink-0 gap-2">
                     <Sparkles className="w-4 h-4" />
                     Aplicar Manual de Marca
                   </Button>
                 </div>
-                {/* Brand color swatches preview */}
-                <div className="flex items-center gap-2 mt-3">
-                  <div className="w-5 h-5 rounded-full border border-white shadow" style={{ background: BRAND_STYLE_DEFAULTS.heroBg }} title="Verde primario" />
-                  <div className="w-5 h-5 rounded-full border border-white shadow" style={{ background: BRAND_STYLE_DEFAULTS.accentColor }} title="Ámbar secundario" />
-                  <div className="w-5 h-5 rounded-full border border-border shadow" style={{ background: BRAND_STYLE_DEFAULTS.sectionBg }} title="Fondo blanco" />
-                  <span className="text-xs text-muted-foreground ml-1">Poppins + Metropolis</span>
+                {/* Brand color swatches */}
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  <div className="w-6 h-6 rounded border border-white shadow" style={{ background: "linear-gradient(135deg, #4164AE, #3DA39A)" }} title="Degradado principal" />
+                  <div className="w-6 h-6 rounded border border-white shadow" style={{ background: "#4164AE" }} title="Azul Principal" />
+                  <div className="w-6 h-6 rounded border border-white shadow" style={{ background: "#3DA39A" }} title="Verde Teal" />
+                  <div className="w-6 h-6 rounded border border-white shadow" style={{ background: "#8DC665" }} title="Lima Claro" />
+                  <div className="w-6 h-6 rounded border border-white shadow" style={{ background: "#47A86E" }} title="Verde Medio" />
+                  <div className="w-6 h-6 rounded border border-border shadow" style={{ background: "#535353" }} title="Gris Tipográfico" />
+                  <div className="w-6 h-6 rounded border border-border shadow" style={{ background: "#ffffff" }} title="Blanco" />
+                  <span className="text-xs text-muted-foreground ml-1">Poppins (títulos) + Metropolis (cuerpo)</span>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Color pickers */}
+            {/* ── HERO ── */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Colores del Hero</CardTitle>
-                <CardDescription>El banner superior grande de la página.</CardDescription>
+                <CardTitle className="text-base">Hero — Fondo y Texto</CardTitle>
+                <CardDescription>Banner superior. Puede usar un color sólido o un degradado.</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <ColorField label="Fondo del hero" value={styles.heroBg} onChange={setStyle("heroBg")} preview={styles.heroBg} />
-                <ColorField label="Color del texto" value={styles.heroText} onChange={setStyle("heroText")} preview={styles.heroText} />
+              <CardContent className="space-y-5">
+                {/* Gradient toggle */}
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id="hero-gradient"
+                    checked={styles.heroGradient}
+                    onCheckedChange={(v) => setStyles((p) => ({ ...p, heroGradient: v }))}
+                  />
+                  <Label htmlFor="hero-gradient">Usar degradado (dos colores)</Label>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <ColorField
+                    label={styles.heroGradient ? "Color inicial del degradado" : "Color de fondo del hero"}
+                    value={styles.heroBg}
+                    onChange={setStyle("heroBg")}
+                    preview={styles.heroBg}
+                  />
+                  {styles.heroGradient && (
+                    <ColorField
+                      label="Color final del degradado"
+                      value={styles.heroGradientEnd}
+                      onChange={setStyle("heroGradientEnd")}
+                      preview={styles.heroGradientEnd}
+                    />
+                  )}
+                  <ColorField label="Color del texto del hero" value={styles.heroText} onChange={setStyle("heroText")} preview={styles.heroText} />
+                </div>
               </CardContent>
             </Card>
 
+            {/* ── ACCENT + BUTTONS ── */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Colores de Acento y Botones</CardTitle>
-                <CardDescription>Badges, botones CTA, y detalles decorativos.</CardDescription>
+                <CardTitle className="text-base">Acento y Botones CTA</CardTitle>
+                <CardDescription>Badges, botones de llamado a la acción y detalles decorativos.</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <ColorField label="Color de acento / badge" value={styles.accentColor} onChange={setStyle("accentColor")} preview={styles.accentColor} />
-                <ColorField label="Fondo del botón CTA" value={styles.buttonBg} onChange={setStyle("buttonBg")} preview={styles.buttonBg} />
-                <ColorField label="Texto del botón CTA" value={styles.buttonText} onChange={setStyle("buttonText")} preview={styles.buttonText} />
+              <CardContent className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <ColorField label="Color de acento / badge" value={styles.accentColor} onChange={setStyle("accentColor")} preview={styles.accentColor} />
+                  <ColorField label="Fondo del botón CTA" value={styles.buttonBg} onChange={setStyle("buttonBg")} preview={styles.buttonBg} />
+                  <ColorField label="Texto del botón CTA" value={styles.buttonText} onChange={setStyle("buttonText")} preview={styles.buttonText} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Esquinas de los botones</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {(["sm", "md", "lg", "full"] as const).map((r) => {
+                      const labels: Record<string, string> = { sm: "Cuadrado", md: "Suave", lg: "Redondeado", full: "Píldora" };
+                      const radiusMap: Record<string, string> = { sm: "0.25rem", md: "0.5rem", lg: "0.75rem", full: "9999px" };
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => setStyle("buttonRadius")(r)}
+                          className={`px-4 py-1.5 text-xs font-medium border transition-colors ${styles.buttonRadius === r ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/50"}`}
+                          style={{ borderRadius: radiusMap[r] }}
+                        >
+                          {labels[r]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
+            {/* ── CONTENT SECTIONS ── */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Colores de Secciones de Contenido</CardTitle>
-                <CardDescription>Área de texto, portafolio y formulario.</CardDescription>
+                <CardTitle className="text-base">Sección de Contenido y Formulario</CardTitle>
+                <CardDescription>Área de texto principal y formulario de contacto.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <ColorField label="Fondo de sección" value={styles.sectionBg} onChange={setStyle("sectionBg")} preview={styles.sectionBg} />
@@ -473,11 +578,23 @@ export default function LandingPagesPanel() {
               </CardContent>
             </Card>
 
-            {/* Fonts */}
+            {/* ── PORTFOLIO SECTION ── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Sección de Portafolio</CardTitle>
+                <CardDescription>Fondo y texto de la grilla de proyectos relacionados.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <ColorField label="Fondo de portafolio" value={styles.portfolioBg} onChange={setStyle("portfolioBg")} preview={styles.portfolioBg} />
+                <ColorField label="Texto del portafolio" value={styles.portfolioText} onChange={setStyle("portfolioText")} preview={styles.portfolioText} />
+              </CardContent>
+            </Card>
+
+            {/* ── FONTS ── */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Tipografía</CardTitle>
-                <CardDescription>Fuentes para títulos y cuerpo de texto. Las fuentes deben estar disponibles en el sitio.</CardDescription>
+                <CardDescription>Fuentes para títulos y cuerpo de texto.</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
@@ -509,43 +626,68 @@ export default function LandingPagesPanel() {
               </CardContent>
             </Card>
 
-            {/* Live preview */}
+            {/* ── LIVE PREVIEW ── */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Vista Previa del Diseño</CardTitle>
-                <CardDescription>Aproximación de cómo se verá el hero y los botones.</CardDescription>
+                <CardDescription>Simulación del hero, contenido y portafolio.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div
-                  className="rounded-xl overflow-hidden border border-border shadow-sm"
-                >
+                <div className="rounded-xl overflow-hidden border border-border shadow-sm">
                   {/* Hero preview */}
                   <div
-                    className="px-6 py-8 text-center"
-                    style={{ background: styles.heroBg, color: styles.heroText, fontFamily: `'${styles.fontHeading}', sans-serif` }}
+                    className="px-6 py-8 text-center relative"
+                    style={{
+                      background: styles.heroGradient
+                        ? `linear-gradient(135deg, ${styles.heroBg} 0%, ${styles.heroGradientEnd} 100%)`
+                        : styles.heroBg,
+                      color: styles.heroText,
+                      fontFamily: `'${styles.fontHeading}', sans-serif`,
+                    }}
                   >
                     <span
-                      className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-3 uppercase tracking-wider"
-                      style={{ background: styles.accentColor + "33", color: styles.accentColor, border: `1px solid ${styles.accentColor}55` }}
+                      className="inline-block text-xs font-semibold px-3 py-1 mb-3 uppercase tracking-wider"
+                      style={{
+                        background: styles.accentColor + "33",
+                        color: styles.heroText,
+                        border: `1px solid ${styles.heroText}44`,
+                        borderRadius: styles.buttonRadius === "full" ? "9999px" : styles.buttonRadius === "sm" ? "0.25rem" : "0.5rem",
+                      }}
                     >
-                      Categoría
+                      {CATEGORIES.find((c) => c.value === form.category)?.label ?? "Categoría"}
                     </span>
                     <h2 className="text-xl font-bold mb-2">{form.heroTitle || form.title || "Título de la Landing Page"}</h2>
                     {form.heroSubtitle && <p className="text-sm opacity-80 mb-4">{form.heroSubtitle}</p>}
                     <button
                       type="button"
-                      className="text-sm font-semibold px-5 py-2 rounded-lg"
-                      style={{ background: styles.buttonBg, color: styles.buttonText }}
+                      className="text-sm font-semibold px-5 py-2"
+                      style={{
+                        background: styles.buttonBg,
+                        color: styles.buttonText,
+                        borderRadius: { sm: "0.25rem", md: "0.5rem", lg: "0.75rem", full: "9999px" }[styles.buttonRadius] ?? "0.75rem",
+                      }}
                     >
                       Solicitar información
                     </button>
                   </div>
                   {/* Content preview */}
                   <div
-                    className="px-6 py-5 border-t border-border"
+                    className="px-6 py-4 border-t border-border"
                     style={{ background: styles.sectionBg, color: styles.contentText, fontFamily: `'${styles.fontBody}', sans-serif` }}
                   >
-                    <p className="text-sm opacity-70">Aquí aparecerá el contenido de la landing page...</p>
+                    <p className="text-sm opacity-70">Sección de contenido — texto persuasivo y beneficios...</p>
+                  </div>
+                  {/* Portfolio preview */}
+                  <div
+                    className="px-6 py-4 border-t border-border flex items-center gap-3"
+                    style={{ background: styles.portfolioBg, color: styles.portfolioText }}
+                  >
+                    <div className="flex gap-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="w-16 h-10 rounded-md opacity-50" style={{ background: styles.portfolioText }} />
+                      ))}
+                    </div>
+                    <p className="text-xs opacity-70">Portafolio de proyectos</p>
                   </div>
                 </div>
               </CardContent>

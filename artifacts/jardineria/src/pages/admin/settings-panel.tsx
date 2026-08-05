@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getSettings, updateSetting } from "@/lib/admin-api";
+import { getSettings, updateSetting, getAdminLandingPages } from "@/lib/admin-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,15 +112,19 @@ export default function SettingsPanel() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [landingPages, setLandingPages] = useState<{ id: number; title: string; slug: string }[]>([]);
 
   useEffect(() => {
-    getSettings()
-      .then((settings) => {
+    Promise.all([
+      getSettings().then((settings) => {
         const map: Record<string, string> = {};
         for (const s of settings) map[s.key] = s.value;
         setValues(map);
-      })
-      .finally(() => setLoading(false));
+      }),
+      getAdminLandingPages()
+        .then((pages: any[]) => setLandingPages(pages.filter((p) => p.active)))
+        .catch(() => {}),
+    ]).finally(() => setLoading(false));
   }, []);
 
   const set = (key: string) => (v: string) => setValues((prev) => ({ ...prev, [key]: v }));
@@ -307,6 +311,57 @@ export default function SettingsPanel() {
                 className="shrink-0"
               >
                 {saved === def.key ? "✓ Guardado" : saving === def.key ? "..." : "Guardar"}
+              </Button>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* ── Segment → Landing Page links ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">🔗 Vinculación de sectores con Landing Pages</CardTitle>
+          <CardDescription>
+            Asocia cada tarjeta de "Entendemos Su Negocio" con una landing page. Al hacer clic en la tarjeta, el visitante será redirigido a esa página.
+            {landingPages.length === 0 && (
+              <span className="block mt-1 text-amber-600 font-medium">
+                No hay landing pages activas aún. Crea una en el panel de Landing Pages.
+              </span>
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[
+            { key: "segment_conjuntos_landing", label: "Conjuntos Residenciales" },
+            { key: "segment_colegios_landing",  label: "Colegios e Instituciones" },
+            { key: "segment_edificios_landing", label: "Edificios de Oficinas" },
+            { key: "segment_centros_landing",   label: "Centros Comerciales" },
+          ].map(({ key, label }) => (
+            <div key={key} className="flex gap-3 items-end">
+              <div className="flex-1 space-y-1.5">
+                <label className="text-sm font-medium" htmlFor={key}>{label}</label>
+                <select
+                  id={key}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  value={values[key] ?? ""}
+                  onChange={(e) => set(key)(e.target.value)}
+                >
+                  <option value="">(sin landing page vinculada)</option>
+                  {landingPages.map((lp) => (
+                    <option key={lp.slug} value={lp.slug}>
+                      {lp.title} — /clientes/{lp.slug}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => save(key)}
+                disabled={saving === key}
+                variant={saved === key ? "secondary" : "default"}
+                className="shrink-0"
+              >
+                {saved === key ? "✓ Guardado" : saving === key ? "..." : "Guardar"}
               </Button>
             </div>
           ))}

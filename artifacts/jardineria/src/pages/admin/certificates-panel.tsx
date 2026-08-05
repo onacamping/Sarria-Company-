@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getCertToken,
   setCertToken,
@@ -13,7 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import ImageUpload from "@/components/admin/image-upload";
-import { Lock, Trash2, Download, FileText, Eye, X, ShieldCheck } from "lucide-react";
+import {
+  Lock, Trash2, Download, FileText, Eye, X, ShieldCheck,
+  ExternalLink, ZoomIn, ZoomOut, RotateCcw, ChevronLeft, ChevronRight,
+  Image as ImageIcon,
+} from "lucide-react";
 
 interface Certificate {
   id: number;
@@ -84,32 +88,181 @@ function PasswordGate({ onUnlocked }: { onUnlocked: () => void }) {
 
 function CertificateViewer({ cert, onClose }: { cert: Certificate; onClose: () => void }) {
   const url = fileUrl(cert.fileUrl);
+  const isPdf = cert.fileType === "pdf";
+
+  // PDF state
+  const [pdfLoaded, setPdfLoaded] = useState(false);
+  const [pdfFailed, setPdfFailed] = useState(false);
+  const embedRef = useRef<HTMLEmbedElement>(null);
+
+  // Image state
+  const [zoom, setZoom] = useState(1);
+
+  // ESC key to close
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Detect if embed actually rendered (PDF may load silently or fail silently)
+  useEffect(() => {
+    if (!isPdf) return;
+    const timer = setTimeout(() => {
+      // If embed element has no content-width, assume it failed
+      if (embedRef.current && embedRef.current.clientHeight < 10) {
+        setPdfFailed(true);
+      }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [isPdf]);
+
   return (
-    <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-3 md:p-6"
+      onClick={onClose}
+    >
       <div
-        className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
+        className="bg-white rounded-2xl w-full max-w-5xl flex flex-col overflow-hidden shadow-2xl"
+        style={{ maxHeight: "calc(100vh - 2rem)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h3 className="font-semibold truncate">{cert.title}</h3>
-          <div className="flex items-center gap-2">
-            <a href={url} download className="inline-flex">
-              <Button size="sm" variant="outline" className="gap-2">
-                <Download className="w-4 h-4" />
-                Descargar
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            {isPdf
+              ? <FileText className="w-4 h-4 text-red-500 shrink-0" />
+              : <ImageIcon className="w-4 h-4 text-blue-500 shrink-0" />
+            }
+            <span className="font-semibold text-sm truncate">{cert.title}</span>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0 uppercase">
+              {cert.fileType}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Image zoom controls */}
+            {!isPdf && (
+              <>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setZoom((z) => Math.max(0.25, z - 0.25))} title="Reducir">
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <span className="text-xs tabular-nums w-10 text-center">{Math.round(zoom * 100)}%</span>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setZoom((z) => Math.min(4, z + 0.25))} title="Ampliar">
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setZoom(1)} title="Restablecer">
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </Button>
+                <div className="w-px h-5 bg-border mx-1" />
+              </>
+            )}
+
+            {/* Open in new tab */}
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="ghost" className="gap-1.5 h-8 text-xs">
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Nueva pestaña</span>
               </Button>
             </a>
-            <Button size="icon" variant="ghost" onClick={onClose}>
+
+            {/* Download */}
+            <a href={url} download={cert.title}>
+              <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs">
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Descargar</span>
+              </Button>
+            </a>
+
+            {/* Close */}
+            <Button size="icon" variant="ghost" className="h-8 w-8 ml-1" onClick={onClose} title="Cerrar (ESC)">
               <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
-        <div className="flex-1 overflow-auto bg-muted/30">
-          {cert.fileType === "pdf" ? (
-            <iframe src={url} title={cert.title} className="w-full h-[75vh]" />
+
+        {/* ── Body ── */}
+        <div className="flex-1 overflow-auto bg-neutral-100 relative">
+          {isPdf ? (
+            <>
+              {/* Loading indicator */}
+              {!pdfLoaded && !pdfFailed && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10 pointer-events-none">
+                  <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  <p className="text-sm text-muted-foreground">Cargando PDF...</p>
+                </div>
+              )}
+
+              {/* Embed — primary renderer */}
+              {!pdfFailed && (
+                <embed
+                  ref={embedRef}
+                  src={`${url}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
+                  type="application/pdf"
+                  className="w-full transition-opacity duration-300"
+                  style={{ height: "75vh", opacity: pdfLoaded ? 1 : 0 }}
+                  onLoad={() => setPdfLoaded(true)}
+                  onError={() => setPdfFailed(true)}
+                />
+              )}
+
+              {/* Fallback when embed fails */}
+              {pdfFailed && (
+                <div className="flex flex-col items-center justify-center gap-5 py-24 px-4 text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-red-50 flex items-center justify-center">
+                    <FileText className="w-10 h-10 text-red-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">No se puede mostrar este PDF en el navegador.</p>
+                    <p className="text-sm text-muted-foreground mt-1">Puede abrirlo en una nueva pestaña o descargarlo directamente.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    <a href={url} target="_blank" rel="noopener noreferrer">
+                      <Button className="gap-2">
+                        <ExternalLink className="w-4 h-4" /> Abrir en nueva pestaña
+                      </Button>
+                    </a>
+                    <a href={url} download={cert.title}>
+                      <Button variant="outline" className="gap-2">
+                        <Download className="w-4 h-4" /> Descargar PDF
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
-            <img src={url} alt={cert.title} className="w-full h-auto" />
+            /* ── Image viewer ── */
+            <div
+              className="flex items-start justify-center min-h-full p-6 overflow-auto"
+              style={{ cursor: zoom > 1 ? "grab" : "default" }}
+            >
+              <img
+                src={url}
+                alt={cert.title}
+                draggable={false}
+                className="rounded-lg shadow-lg transition-transform duration-200 select-none"
+                style={{ transform: `scale(${zoom})`, transformOrigin: "top center", maxWidth: "100%" }}
+                onDoubleClick={() => setZoom((z) => (z === 1 ? 2 : 1))}
+              />
+            </div>
           )}
+        </div>
+
+        {/* ── Footer hint ── */}
+        <div className="px-4 py-2 border-t border-border bg-muted/40 shrink-0 flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            {isPdf
+              ? "Usa los controles del visor para navegar páginas y ajustar el zoom del PDF."
+              : "Doble clic para ampliar · Usa los botones + / − para hacer zoom."}
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Cerrar (ESC)
+          </button>
         </div>
       </div>
     </div>

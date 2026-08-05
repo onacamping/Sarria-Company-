@@ -16,6 +16,7 @@ export const landingPagesTable = pgTable("landing_pages", {
   active: boolean("active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
   customStyles: text("custom_styles").notNull().default("{}"),
+  blocks: text("blocks").notNull().default("[]"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

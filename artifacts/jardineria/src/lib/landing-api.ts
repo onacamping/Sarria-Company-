@@ -18,14 +18,22 @@ export interface LandingPage {
   updatedAt: string;
 }
 
+// Re-exported so the public renderer can import without touching admin components
+export type { Block, BlockType, CarouselImage } from "@/components/admin/block-editor";
+
 export interface LandingCustomStyles {
   heroBg?: string;
+  heroGradient?: boolean;
+  heroGradientEnd?: string;
   heroText?: string;
   accentColor?: string;
   buttonBg?: string;
   buttonText?: string;
+  buttonRadius?: string; // "sm" | "md" | "lg" | "full"
   sectionBg?: string;
   contentText?: string;
+  portfolioBg?: string;
+  portfolioText?: string;
   fontHeading?: string;
   fontBody?: string;
 }

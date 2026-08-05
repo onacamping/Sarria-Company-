@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "wouter";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
+import useEmblaCarousel from "embla-carousel-react";
 import Navbar from "@/components/home/navbar";
 import Footer from "@/components/home/footer";
 import SectionHeading from "@/components/home/section-heading";
@@ -13,26 +14,51 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { getLandingPage, submitLandingContact, type LandingPage as LandingPageType, type LandingCustomStyles } from "@/lib/landing-api";
+import type { Block } from "@/components/admin/block-editor";
 import { useListProjects, useGetProject } from "@workspace/api-client-react";
-import { MapPin, Calendar, Maximize, Tag, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  MapPin, Calendar, Maximize, Tag, CheckCircle, AlertCircle,
+  ChevronLeft, ChevronRight,
+} from "lucide-react";
+
+// ── CSS vars builder ─────────────────────────────────────────────────────────
+
+const RADIUS_MAP: Record<string, string> = {
+  sm: "0.25rem", md: "0.5rem", lg: "0.75rem", full: "9999px",
+};
 
 function parseStyles(raw: string): LandingCustomStyles {
   try { return JSON.parse(raw || "{}"); } catch { return {}; }
 }
 
 function buildCssVars(cs: LandingCustomStyles): React.CSSProperties {
+  const heroBg = cs.heroGradient && cs.heroGradientEnd
+    ? `linear-gradient(135deg, ${cs.heroBg || "#4164AE"} 0%, ${cs.heroGradientEnd} 100%)`
+    : (cs.heroBg || "#4164AE");
+
   return {
-    ["--lp-hero-bg" as string]: cs.heroBg || "hsl(var(--primary))",
+    ["--lp-hero-bg" as string]: heroBg,
     ["--lp-hero-text" as string]: cs.heroText || "#ffffff",
-    ["--lp-accent" as string]: cs.accentColor || "hsl(var(--secondary))",
-    ["--lp-btn-bg" as string]: cs.buttonBg || "hsl(var(--secondary))",
+    ["--lp-accent" as string]: cs.accentColor || "#8DC665",
+    ["--lp-btn-bg" as string]: cs.buttonBg || "#4164AE",
     ["--lp-btn-text" as string]: cs.buttonText || "#ffffff",
+    ["--lp-btn-radius" as string]: RADIUS_MAP[cs.buttonRadius || "lg"] ?? "0.75rem",
     ["--lp-section-bg" as string]: cs.sectionBg || "#ffffff",
-    ["--lp-content-text" as string]: cs.contentText || "hsl(var(--foreground))",
+    ["--lp-content-text" as string]: cs.contentText || "#535353",
+    ["--lp-portfolio-bg" as string]: cs.portfolioBg || "#4164AE",
+    ["--lp-portfolio-text" as string]: cs.portfolioText || "#ffffff",
     ["--lp-font-heading" as string]: cs.fontHeading ? `'${cs.fontHeading}', sans-serif` : "var(--font-heading, inherit)",
     ["--lp-font-body" as string]: cs.fontBody ? `'${cs.fontBody}', sans-serif` : "var(--font-body, inherit)",
   } as React.CSSProperties;
 }
+
+// ── Block parser ──────────────────────────────────────────────────────────────
+
+function parseBlocks(raw: string): Block[] {
+  try { return JSON.parse(raw || "[]"); } catch { return []; }
+}
+
+// ── Page component ────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
   const params = useParams<{ slug: string }>();
@@ -55,6 +81,7 @@ export default function LandingPage() {
 
   const cs = parseStyles(page.customStyles ?? "{}");
   const cssVars = buildCssVars(cs);
+  const blocks = parseBlocks((page as any).blocks ?? "[]");
 
   return (
     <>
@@ -66,7 +93,10 @@ export default function LandingPage() {
         <Navbar />
         <main>
           <LandingHero page={page} />
-          {page.content && <LandingContent content={page.content} />}
+          {/* Block-based content */}
+          {blocks.length > 0 && <BlocksRenderer blocks={blocks} />}
+          {/* Legacy Quill content (backwards compat) */}
+          {blocks.length === 0 && page.content && <LandingContent content={page.content} />}
           <LandingPortfolio category={page.category} title={page.title} />
           <LandingContactForm page={page} />
         </main>
@@ -77,24 +107,27 @@ export default function LandingPage() {
   );
 }
 
+// ── Hero ──────────────────────────────────────────────────────────────────────
+
 function LandingHero({ page }: { page: LandingPageType }) {
   return (
     <section
-      className="relative text-primary-foreground pt-32 pb-20 px-4"
+      className="relative pt-32 pb-20 px-4"
       style={{
         background: "var(--lp-hero-bg)",
         color: "var(--lp-hero-text)",
         fontFamily: "var(--lp-font-heading)",
       }}
     >
-      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, transparent 0%, rgba(0,0,0,0.15) 100%)" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.12) 100%)" }} />
       <div className="container mx-auto relative z-10 text-center max-w-3xl">
         <span
-          className="inline-block text-xs font-semibold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider"
+          className="inline-block text-xs font-semibold px-4 py-1.5 mb-4 uppercase tracking-wider"
           style={{
-            background: "var(--lp-accent, hsl(var(--secondary)))" + "33",
+            background: "rgba(255,255,255,0.18)",
             color: "var(--lp-hero-text)",
-            border: "1px solid var(--lp-hero-text)" + "44",
+            border: "1px solid rgba(255,255,255,0.35)",
+            borderRadius: "var(--lp-btn-radius, 0.75rem)",
           }}
         >
           {categoryLabel(page.category)}
@@ -103,16 +136,17 @@ function LandingHero({ page }: { page: LandingPageType }) {
           {page.heroTitle ?? page.title}
         </h1>
         {page.heroSubtitle && (
-          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto" style={{ opacity: 0.85 }}>
+          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto" style={{ opacity: 0.88 }}>
             {page.heroSubtitle}
           </p>
         )}
         <a
           href="#contacto-landing"
-          className="inline-block font-semibold px-8 py-3 rounded-xl text-base transition-opacity hover:opacity-90"
+          className="inline-block font-semibold px-8 py-3 text-base transition-opacity hover:opacity-90"
           style={{
             background: "var(--lp-btn-bg)",
             color: "var(--lp-btn-text)",
+            borderRadius: "var(--lp-btn-radius, 0.75rem)",
           }}
         >
           Solicitar información
@@ -121,6 +155,8 @@ function LandingHero({ page }: { page: LandingPageType }) {
     </section>
   );
 }
+
+// ── Legacy content renderer ───────────────────────────────────────────────────
 
 function LandingContent({ content }: { content: string }) {
   return (
@@ -142,6 +178,218 @@ function LandingContent({ content }: { content: string }) {
   );
 }
 
+// ── Block renderers ───────────────────────────────────────────────────────────
+
+function BlocksRenderer({ blocks }: { blocks: Block[] }) {
+  return (
+    <section
+      style={{
+        background: "var(--lp-section-bg)",
+        color: "var(--lp-content-text)",
+        fontFamily: "var(--lp-font-body)",
+      }}
+    >
+      <div className="container mx-auto px-4 md:px-6 max-w-4xl py-12 space-y-12">
+        {blocks.map((block) => <BlockItem key={block.id} block={block} />)}
+      </div>
+    </section>
+  );
+}
+
+function BlockItem({ block }: { block: Block }) {
+  switch (block.type) {
+    case "heading": return <HeadingBlock block={block} />;
+    case "text":    return <TextBlock block={block} />;
+    case "image":   return <ImageBlock block={block} />;
+    case "carousel":return <CarouselBlock block={block} />;
+    case "video":   return <VideoBlock block={block} />;
+    case "divider": return <DividerBlock block={block} />;
+    default:        return null;
+  }
+}
+
+function HeadingBlock({ block }: { block: Block }) {
+  const align = block.headingAlign ?? "center";
+  const textAlign = { left: "text-left", center: "text-center", right: "text-right" }[align];
+  return (
+    <div className={textAlign}>
+      {block.headingSubtitle && (
+        <p className="text-sm font-semibold uppercase tracking-widest mb-2 opacity-60">{block.headingSubtitle}</p>
+      )}
+      {block.headingTitle && (
+        <h2 className="text-3xl md:text-4xl font-bold leading-tight" style={{ fontFamily: "var(--lp-font-heading)" }}>
+          {block.headingTitle}
+        </h2>
+      )}
+    </div>
+  );
+}
+
+function TextBlock({ block }: { block: Block }) {
+  if (!block.textHtml) return null;
+  return (
+    <div
+      className="prose prose-lg max-w-none prose-headings:font-bold"
+      style={{ color: "var(--lp-content-text)" }}
+      dangerouslySetInnerHTML={{ __html: block.textHtml }}
+    />
+  );
+}
+
+function ImageBlock({ block }: { block: Block }) {
+  if (!block.imageUrl) return null;
+  const sizeClass = {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-2xl",
+    full: "max-w-full",
+  }[block.imageSize ?? "full"];
+  const alignClass = block.imageSize !== "full"
+    ? { left: "mr-auto", center: "mx-auto", right: "ml-auto" }[block.imageAlign ?? "center"]
+    : "";
+
+  return (
+    <figure className={`${sizeClass} ${alignClass}`}>
+      <img
+        src={block.imageUrl}
+        alt={block.imageCaption ?? ""}
+        className="w-full rounded-xl shadow-sm object-cover"
+      />
+      {block.imageCaption && (
+        <figcaption className="text-sm text-center mt-2 opacity-60">{block.imageCaption}</figcaption>
+      )}
+    </figure>
+  );
+}
+
+function CarouselBlock({ block }: { block: Block }) {
+  const images = block.carouselImages ?? [];
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: images.length > 1 });
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIdx(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on("select", onSelect);
+    return () => { emblaApi.off("select", onSelect); };
+  }, [emblaApi, onSelect]);
+
+  if (images.length === 0) return null;
+
+  const aspectClass = {
+    "16/9": "aspect-video",
+    "4/3": "aspect-[4/3]",
+    "1/1": "aspect-square",
+  }[block.carouselAspect ?? "16/9"];
+
+  return (
+    <div className="relative group rounded-2xl overflow-hidden shadow-sm border border-border/30">
+      {/* Viewport */}
+      <div className="overflow-hidden" ref={emblaRef}>
+        <div className="flex">
+          {images.map((img, i) => (
+            <div key={i} className={`relative min-w-0 flex-[0_0_100%] ${aspectClass}`}>
+              <img
+                src={img.url}
+                alt={img.caption ?? ""}
+                className="w-full h-full object-cover"
+              />
+              {img.caption && (
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-5 py-4">
+                  <p className="text-white text-sm text-center">{img.caption}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Arrows */}
+      {images.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() => emblaApi?.scrollPrev()}
+            className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/85 hover:bg-white rounded-full p-2.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <button
+            type="button"
+            onClick={() => emblaApi?.scrollNext()}
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/85 hover:bg-white rounded-full p-2.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+            aria-label="Siguiente"
+          >
+            <ChevronRight className="w-5 h-5 text-foreground" />
+          </button>
+
+          {/* Dots */}
+          <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5 pointer-events-none">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => emblaApi?.scrollTo(i)}
+                className={`w-2 h-2 rounded-full transition-all pointer-events-auto ${
+                  i === selectedIdx ? "bg-white scale-125" : "bg-white/50 hover:bg-white/80"
+                }`}
+                aria-label={`Imagen ${i + 1}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function VideoBlock({ block }: { block: Block }) {
+  if (!block.videoUrl) return null;
+  const vid = extractYoutubeId(block.videoUrl);
+  if (!vid) return (
+    <div className="rounded-xl bg-muted p-8 text-center text-muted-foreground text-sm">
+      URL de YouTube no válida
+    </div>
+  );
+  return (
+    <figure className="rounded-2xl overflow-hidden shadow-sm border border-border/30">
+      <div className="aspect-video">
+        <iframe
+          src={`https://www.youtube.com/embed/${vid}`}
+          title={block.videoTitle ?? "Video"}
+          className="w-full h-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+      {block.videoTitle && (
+        <figcaption className="px-5 py-3 text-sm opacity-70 text-center border-t border-border/30">
+          {block.videoTitle}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+function DividerBlock({ block }: { block: Block }) {
+  const height = { sm: 8, md: 24, lg: 64 }[block.dividerSize ?? "md"];
+  return <div style={{ height }} />;
+}
+
+function extractYoutubeId(url: string): string | null {
+  const m =
+    url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/) ||
+    url.match(/^([^"&?/\s]{11})$/);
+  return m?.[1] ?? null;
+}
+
+// ── Portfolio section ─────────────────────────────────────────────────────────
+
 function LandingPortfolio({ category, title }: { category: string; title: string }) {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const { data: projects, isLoading } = useListProjects({ category: category as any });
@@ -152,7 +400,11 @@ function LandingPortfolio({ category, title }: { category: string; title: string
   if (!isLoading && (!projects || projects.length === 0)) return null;
 
   return (
-    <section id="portafolio-landing" className="py-20 bg-primary text-primary-foreground">
+    <section
+      id="portafolio-landing"
+      className="py-20"
+      style={{ background: "var(--lp-portfolio-bg, #4164AE)", color: "var(--lp-portfolio-text, #ffffff)" }}
+    >
       <div className="container mx-auto px-4 md:px-6">
         <div className="mb-10 text-center">
           <SectionHeading
@@ -191,7 +443,7 @@ function LandingPortfolio({ category, title }: { category: string; title: string
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-base mb-1">{p.title}</h3>
-                    <p className="text-sm text-primary-foreground/70 flex items-center gap-1">
+                    <p className="text-sm opacity-70 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5" /> {p.location}
                     </p>
                   </div>
@@ -234,6 +486,8 @@ function LandingPortfolio({ category, title }: { category: string; title: string
     </section>
   );
 }
+
+// ── Contact form ──────────────────────────────────────────────────────────────
 
 function LandingContactForm({ page }: { page: LandingPageType }) {
   const [form, setForm] = useState({ name: "", company: "", phone: "", email: "", message: "" });
@@ -320,8 +574,12 @@ function LandingContactForm({ page }: { page: LandingPageType }) {
             <button
               type="submit"
               disabled={sending}
-              className="w-full font-semibold py-3 px-6 rounded-xl text-base transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ background: "var(--lp-btn-bg, hsl(var(--primary)))", color: "var(--lp-btn-text, #fff)" }}
+              className="w-full font-semibold py-3 px-6 text-base transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{
+                background: "var(--lp-btn-bg, hsl(var(--primary)))",
+                color: "var(--lp-btn-text, #fff)",
+                borderRadius: "var(--lp-btn-radius, 0.75rem)",
+              }}
             >
               {sending ? "Enviando..." : "Enviar mensaje"}
             </button>
@@ -331,6 +589,8 @@ function LandingContactForm({ page }: { page: LandingPageType }) {
     </section>
   );
 }
+
+// ── Skeleton / not found ──────────────────────────────────────────────────────
 
 function LandingPageSkeleton() {
   return (
@@ -359,6 +619,8 @@ function LandingNotFound() {
     </div>
   );
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function categoryLabel(cat: string) {
   const map: Record<string, string> = {
