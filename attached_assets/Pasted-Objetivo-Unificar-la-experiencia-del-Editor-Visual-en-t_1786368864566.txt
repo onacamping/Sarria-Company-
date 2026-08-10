@@ -1,0 +1,79 @@
+Objetivo: Unificar la experiencia del Editor Visual en todo el sitio (incluyendo Landing Pages) y solucionar fallos de la función de agregar bloques y edición de contenido.
+
+Habilitar la edición de texto inline en el Editor Visual:
+En la vista previa del Editor Visual, al seleccionar cualquier elemento (
+
+,
+
+, botones, etc.), el popover/modal de edición actual solo permite cambiar color y tipografía.
+Requerimiento: Agregar un campo de entrada (input o textarea editable/WYSIWYG) dentro de este popover para que el usuario pueda modificar directamente el contenido del texto seleccionado de la página, además del estilo.
+
+Corrección del "Constructor de Páginas" (Agregar Bloques):
+Bug actual: Al hacer clic en la opción de agregar un bloque (como carrusel, imágenes, etc.) desde el Constructor de Páginas, no ocurre nada en el lienzo/preview.
+
+Requerimiento: Corregir el evento de inserción para que al presionar o arrastrar un bloque, este se cree e integre correctamente en el árbol de componentes del cliente y se guarde en la base de datos.
+
+Unificación del Editor Visual en Landing Pages:
+Actualmente las Landing Pages tienen un panel de "Diseño Visual" distinto al del resto del sitio.
+
+Requerimiento: Hacer que las Landing Pages compartan exactamente la misma interfaz y motor de Editor Visual (con selección visual directa sobre la vista previa, arrastrado de bloques y edición inline de texto) que utiliza la página principal.
+
+ademas en el apartado de vinculacion de sectores se puedan agregar mas para poder vincularlas con mas landigs
+
+5 days ago
+Analyzing current codebase state
+
+Analyzing current codebase state
+¿Qué quieres que haga ahora?
+¿Qué tarea quieres abordar?
+Hacer todo en orden (empezar por el más crítico)
+
+Worked for 35 seconds
+
+Checkpoint made
+5 days ago
+Reading project files
+
+Reading project files
+Voy a leer los archivos clave en paralelo para entender el estado actual.
+
+
+3 actions
+Necesito ver el contenido completo de los archivos clave. Voy a leerlos en paralelo.
+
+
+4 actions
+Ahora voy a leer los archivos restantes que necesito para entender el sistema de inspección de elementos y el settings panel.
+
+
+9 actions
+Tengo todo lo que necesito. Ahora voy a implementar los tres arreglos en paralelo:
+
+BlockEditor: fix del AddBlockMenu (onBlur poco confiable → click-outside)
+Editor visual: edición de texto inline en el popover del elemento seleccionado
+Sector links: extensibles con custom segments
+Empiezo con todos los cambios:
+
+
+2 actions
+Ahora implemento todos los cambios en paralelo. Tengo todo el contexto necesario.
+
+
+2 actions
+Continúo con los cambios restantes en paralelo:
+
+
+4 actions
+Continúo con todos los cambios restantes en paralelo:
+
+
+3 actions
+Ahora actualizo el editor visual para texto inline, el panel de settings para sectores extensibles, y el componente de client-types:
+
+
+2 actions
+Ahora actualizo el settings panel para sectores extensibles y el componente client-types:
+
+
+2 actions
+Continúo con los cambios del settings panel y client-types:
