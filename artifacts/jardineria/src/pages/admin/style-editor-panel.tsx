@@ -565,13 +565,24 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
                     <p className="text-xs font-semibold uppercase text-muted-foreground">
                       Editando &lt;{selectedElement.tag}&gt;
                     </p>
-                    <p className="text-sm font-medium truncate max-w-[200px]" title={selectedElement.text}>
-                      “{selectedElement.text}”
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]" title={selectedElement.text}>
+                      {selectedElement.text}
                     </p>
                   </div>
                   <button onClick={closeElementEditor} aria-label="Cerrar">
                     <X className="w-4 h-4 text-muted-foreground" />
                   </button>
+                </div>
+                {/* Inline text editing */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Texto</Label>
+                  <textarea
+                    rows={2}
+                    className="w-full text-xs rounded-md border border-input bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+                    value={elementOverrides[selectedElement.id]?.text ?? selectedElement.text}
+                    onChange={(e) => updateElementOverride(selectedElement.id, { text: e.target.value })}
+                    placeholder={selectedElement.text}
+                  />
                 </div>
                 <ColorPicker
                   id={`el-${selectedElement.id}-color`}

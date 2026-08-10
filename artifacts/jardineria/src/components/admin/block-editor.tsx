@@ -557,13 +557,20 @@ function AddBlockMenu({ onAdd }: { onAdd: (type: BlockType) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
-  const handleBlur = (e: React.FocusEvent) => {
-    if (!ref.current?.contains(e.relatedTarget as Node)) setOpen(false);
-  };
+  // Close on outside mousedown (more reliable than onBlur for click detection)
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
 
   return (
-    <div ref={ref} className="relative inline-block" onBlur={handleBlur}>
+    <div ref={ref} className="relative inline-block">
       <Button
         type="button"
         variant="outline"

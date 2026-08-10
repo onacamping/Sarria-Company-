@@ -24,6 +24,7 @@ export default function ElementInspectorProvider() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [previewOverrides, setPreviewOverrides] = useState<ElementOverrideMap | null>(null);
   const mapRef = useRef<Map<string, HTMLElement>>(new Map());
+  const observerRef = useRef<MutationObserver | null>(null);
   const hoveredRef = useRef<HTMLElement | null>(null);
 
   const committedOverrides = useMemo(
@@ -37,17 +38,22 @@ export default function ElementInspectorProvider() {
   // and keep overrides applied.
   useEffect(() => {
     function retag() {
+      // Disconnect while applying to prevent textContent overrides from
+      // triggering the observer recursively (infinite loop guard).
+      observerRef.current?.disconnect();
       mapRef.current = tagEditableElements();
       applyElementOverrides(effectiveOverrides, mapRef.current);
       if (selectedId) {
         document.querySelectorAll(".sarria-inspect-selected").forEach((el) => el.classList.remove("sarria-inspect-selected"));
         mapRef.current.get(selectedId)?.classList.add("sarria-inspect-selected");
       }
+      observerRef.current?.observe(document.body, { childList: true, subtree: true, characterData: true });
     }
     retag();
     const observer = new MutationObserver(() => retag());
+    observerRef.current = observer;
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
+    return () => { observer.disconnect(); observerRef.current = null; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveOverrides, selectedId]);
 

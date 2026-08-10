@@ -7,7 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Switch } from "@/components/ui/switch";
 import ColorPicker from "@/components/admin/color-picker";
 import ImageUpload from "@/components/admin/image-upload";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+
+interface CustomSegment {
+  label: string;
+  slug: string;
+}
 
 interface SettingDef {
   key: string;
@@ -107,12 +112,19 @@ function FieldRow({
   );
 }
 
+function parseCustomSegments(raw: string | undefined): CustomSegment[] {
+  try { return JSON.parse(raw || "[]"); } catch { return []; }
+}
+
 export default function SettingsPanel() {
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
   const [landingPages, setLandingPages] = useState<{ id: number; title: string; slug: string }[]>([]);
+  const [customSegments, setCustomSegments] = useState<CustomSegment[]>([]);
+  const [savingCustom, setSavingCustom] = useState(false);
+  const [savedCustom, setSavedCustom] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -120,12 +132,40 @@ export default function SettingsPanel() {
         const map: Record<string, string> = {};
         for (const s of settings) map[s.key] = s.value;
         setValues(map);
+        setCustomSegments(parseCustomSegments(map["segment_custom_links"]));
       }),
       getAdminLandingPages()
         .then((pages: any[]) => setLandingPages(pages.filter((p) => p.active)))
         .catch(() => {}),
     ]).finally(() => setLoading(false));
   }, []);
+
+  async function saveCustomSegments(segments: CustomSegment[]) {
+    setSavingCustom(true);
+    try {
+      await updateSetting("segment_custom_links", JSON.stringify(segments));
+      setSavedCustom(true);
+      setTimeout(() => setSavedCustom(false), 2500);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSavingCustom(false);
+    }
+  }
+
+  function addCustomSegment() {
+    setCustomSegments((prev) => [...prev, { label: "", slug: "" }]);
+  }
+
+  function updateCustomSegment(i: number, patch: Partial<CustomSegment>) {
+    setCustomSegments((prev) => prev.map((s, idx) => idx === i ? { ...s, ...patch } : s));
+  }
+
+  function removeCustomSegment(i: number) {
+    const next = customSegments.filter((_, idx) => idx !== i);
+    setCustomSegments(next);
+    saveCustomSegments(next);
+  }
 
   const set = (key: string) => (v: string) => setValues((prev) => ({ ...prev, [key]: v }));
 

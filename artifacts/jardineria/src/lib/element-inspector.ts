@@ -1,4 +1,4 @@
-export type ElementOverride = { color?: string; font?: string };
+export type ElementOverride = { color?: string; font?: string; text?: string };
 export type ElementOverrideMap = Record<string, ElementOverride>;
 
 const EDITABLE_SELECTOR = "h1,h2,h3,h4,h5,h6,p,button,a";
@@ -27,6 +27,15 @@ export function tagEditableElements(root: ParentNode = document.body): Map<strin
 
   for (const el of elements) {
     if (el.closest("[data-no-edit]")) continue;
+
+    // If already tagged, preserve the existing stable ID to avoid ID drift
+    // (e.g. after text overrides change the textContent).
+    const existingId = el.getAttribute("data-el-id");
+    if (existingId) {
+      map.set(existingId, el);
+      continue;
+    }
+
     const text = (el.textContent ?? "").trim();
     if (!text) continue;
 
@@ -46,7 +55,7 @@ export function tagEditableElements(root: ParentNode = document.body): Map<strin
   return map;
 }
 
-/** Applies (or clears) per-element color/font overrides on already-tagged elements. */
+/** Applies (or clears) per-element color/font/text overrides on already-tagged elements. */
 export function applyElementOverrides(overrides: ElementOverrideMap, map: Map<string, HTMLElement>) {
   for (const [id, el] of map) {
     const o = overrides[id];
@@ -55,6 +64,12 @@ export function applyElementOverrides(overrides: ElementOverrideMap, map: Map<st
 
     if (o?.font) el.style.setProperty("font-family", `'${o.font}', sans-serif`, "important");
     else el.style.removeProperty("font-family");
+
+    // Apply text override only when it differs from current textContent to
+    // avoid triggering an infinite MutationObserver loop.
+    if (o?.text !== undefined && el.textContent !== o.text) {
+      el.textContent = o.text;
+    }
   }
 }
 
