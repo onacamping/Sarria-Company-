@@ -113,7 +113,13 @@ function FieldRow({
 }
 
 function parseCustomSegments(raw: string | undefined): CustomSegment[] {
-  try { return JSON.parse(raw || "[]"); } catch { return []; }
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is CustomSegment =>
+          !!item && typeof item.label === "string" && typeof item.slug === "string")
+      : [];
+  } catch { return []; }
 }
 
 export default function SettingsPanel() {
@@ -165,6 +171,19 @@ export default function SettingsPanel() {
     const next = customSegments.filter((_, idx) => idx !== i);
     setCustomSegments(next);
     saveCustomSegments(next);
+  }
+
+  function saveCustomSegmentAt(index: number) {
+    const segment = customSegments[index];
+    if (!segment?.label.trim()) {
+      alert("Escribe un nombre para el sector.");
+      return;
+    }
+    if (!segment.slug) {
+      alert("Selecciona una Landing Page para este sector.");
+      return;
+    }
+    saveCustomSegments(customSegments);
   }
 
   const set = (key: string) => (v: string) => setValues((prev) => ({ ...prev, [key]: v }));
@@ -405,6 +424,65 @@ export default function SettingsPanel() {
               </Button>
             </div>
           ))}
+
+          {customSegments.length > 0 && (
+            <div className="pt-3 border-t border-border space-y-3">
+              <p className="text-sm font-medium">Sectores adicionales</p>
+              {customSegments.map((segment, index) => {
+                const rowKey = `custom-${index}`;
+                return (
+                  <div key={rowKey} className="flex gap-2 items-end rounded-lg border border-border p-3">
+                    <div className="flex-1 grid sm:grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium" htmlFor={`${rowKey}-label`}>Nombre del sector</label>
+                        <Input
+                          id={`${rowKey}-label`}
+                          value={segment.label}
+                          placeholder="Hoteles y clubes"
+                          onChange={(e) => updateCustomSegment(index, { label: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium" htmlFor={`${rowKey}-landing`}>Landing vinculada</label>
+                        <select
+                          id={`${rowKey}-landing`}
+                          className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                          value={segment.slug}
+                          onChange={(e) => updateCustomSegment(index, { slug: e.target.value })}
+                        >
+                          <option value="">(sin landing page vinculada)</option>
+                          {landingPages.map((lp) => (
+                            <option key={lp.slug} value={lp.slug}>{lp.title} — /clientes/{lp.slug}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => saveCustomSegmentAt(index)}
+                      disabled={savingCustom}
+                      variant={savedCustom ? "secondary" : "default"}
+                    >
+                      {savedCustom ? "✓" : savingCustom ? "..." : "Guardar"}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="text-destructive shrink-0"
+                      onClick={() => removeCustomSegment(index)}
+                      title="Eliminar sector"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <Button type="button" variant="outline" className="border-dashed" onClick={addCustomSegment}>
+            <Plus className="w-4 h-4 mr-1" /> Agregar otro sector
+          </Button>
         </CardContent>
       </Card>
     </div>

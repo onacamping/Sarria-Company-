@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   getAdminLandingPages,
   createLandingPage,
@@ -18,6 +18,8 @@ import {
   Users, Inbox, ExternalLink, Eye, EyeOff, Sparkles, Palette, Type, Layout,
 } from "lucide-react";
 import BlockEditor, { type Block } from "@/components/admin/block-editor";
+import { parseOverrides, type ElementOverrideMap } from "@/lib/element-inspector";
+import { ElementStylePopover, type SelectedElement } from "@/components/admin/element-style-popover";
 
 interface LandingPage {
   id: number;
@@ -64,6 +66,7 @@ interface StyleForm {
   portfolioText: string;
   fontHeading: string;
   fontBody: string;
+  elementStyleOverrides: string;
 }
 
 const CATEGORIES = [
@@ -98,6 +101,7 @@ const BRAND_STYLE_DEFAULTS: StyleForm = {
   portfolioText: "#ffffff",
   fontHeading: "Poppins",
   fontBody: "Metropolis",
+  elementStyleOverrides: "{}",
 };
 
 const DEFAULT_STYLE: StyleForm = {
@@ -115,6 +119,7 @@ const DEFAULT_STYLE: StyleForm = {
   portfolioText: "#ffffff",
   fontHeading: "Poppins",
   fontBody: "Metropolis",
+  elementStyleOverrides: "{}",
 };
 
 function parseStyles(raw: string): StyleForm {
@@ -167,6 +172,9 @@ export default function LandingPagesPanel() {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [saving, setSaving] = useState(false);
   const [expandedContact, setExpandedContact] = useState<number | null>(null);
+  const [inspectMode, setInspectMode] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null);
+  const landingPreviewRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     loadAll();
@@ -225,6 +233,67 @@ export default function LandingPagesPanel() {
   function applyBrandManual() {
     setStyles({ ...BRAND_STYLE_DEFAULTS });
   }
+
+  const landingElementOverrides = useMemo(
+    () => parseOverrides(styles.elementStyleOverrides),
+    [styles.elementStyleOverrides],
+  );
+
+  function updateLandingElement(id: string, patch: { color?: string; font?: string; text?: string }) {
+    const next: ElementOverrideMap = {
+      ...landingElementOverrides,
+      [id]: { ...landingElementOverrides[id], ...patch },
+    };
+    setStyles((prev) => ({ ...prev, elementStyleOverrides: JSON.stringify(next) }));
+  }
+
+  function removeLandingElement(id: string) {
+    const next = { ...landingElementOverrides };
+    delete next[id];
+    setStyles((prev) => ({ ...prev, elementStyleOverrides: JSON.stringify(next) }));
+  }
+
+  function closeLandingElementEditor() {
+    setSelectedElement(null);
+    landingPreviewRef.current?.contentWindow?.postMessage({ type: "sarria-element-deselect" }, "*");
+  }
+
+  useEffect(() => {
+    const win = landingPreviewRef.current?.contentWindow;
+    if (!win || editing === "new" || typeof editing !== "number") return;
+    win.postMessage(
+      {
+        type: "sarria-style-preview",
+        landingSlug: form.slug,
+        landingCustomStyles: styles,
+        draft: { element_style_overrides: styles.elementStyleOverrides },
+      },
+      "*",
+    );
+  }, [styles, form.slug, editing]);
+
+  useEffect(() => {
+    const win = landingPreviewRef.current?.contentWindow;
+    if (!win) return;
+    win.postMessage({ type: "sarria-inspector-mode", enabled: inspectMode }, "*");
+  }, [inspectMode]);
+
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      const msg = event.data;
+      if (msg?.type === "sarria-element-selected") {
+        setSelectedElement({
+          id: msg.id,
+          tag: msg.tag,
+          text: msg.text,
+          color: msg.color,
+          font: msg.font,
+        });
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   async function handleSave() {
     if (!form.title.trim() || !form.slug.trim()) {
@@ -443,6 +512,71 @@ export default function LandingPagesPanel() {
                 </div>
               </CardContent>
             </Card>
+
+            {editing !== "new" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-primary" /> Editor Visual de la Landing
+                  </CardTitle>
+                  <CardDescription>
+                    Es la misma vista previa interactiva del Editor Visual general. Activa la selección y haz clic
+                    sobre cualquier texto o botón para editar su contenido, color o tipografía.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <Button
+                      type="button"
+                      variant={inspectMode ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        if (inspectMode) closeLandingElementEditor();
+                        setInspectMode((value) => !value);
+                      }}
+                    >
+                      {inspectMode ? "Seleccionando…" : "Editar un texto o botón"}
+                    </Button>
+                    <span className="text-xs text-muted-foreground">Los cambios se guardan con “Guardar cambios”.</span>
+                  </div>
+                  {inspectMode && (
+                    <p className="text-xs bg-primary/10 text-primary border border-primary/20 rounded-lg px-3 py-2 mb-3">
+                      Haz clic en cualquier texto o botón de la vista previa.
+                    </p>
+                  )}
+                  <div className="relative border border-border rounded-xl overflow-hidden bg-white shadow-sm">
+                    <iframe
+                      ref={landingPreviewRef}
+                      src={`${(import.meta.env.BASE_URL ?? "/").replace(/\/$/, "")}/clientes/${encodeURIComponent(form.slug)}`}
+                      title="Vista previa de la landing page"
+                      className="w-full h-[720px] border-0 bg-white"
+                      onLoad={() => {
+                        const win = landingPreviewRef.current?.contentWindow;
+                        win?.postMessage(
+                          {
+                            type: "sarria-style-preview",
+                            landingSlug: form.slug,
+                            landingCustomStyles: styles,
+                            draft: { element_style_overrides: styles.elementStyleOverrides },
+                          },
+                          "*",
+                        );
+                        win?.postMessage({ type: "sarria-inspector-mode", enabled: inspectMode }, "*");
+                      }}
+                    />
+                    {selectedElement && (
+                      <ElementStylePopover
+                        selected={selectedElement}
+                        overrides={landingElementOverrides}
+                        onChange={(_id, patch) => updateLandingElement(selectedElement.id, patch)}
+                        onRemove={removeLandingElement}
+                        onClose={closeLandingElementEditor}
+                      />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 

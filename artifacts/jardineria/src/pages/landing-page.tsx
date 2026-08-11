@@ -66,20 +66,50 @@ export default function LandingPage() {
   const [page, setPage] = useState<LandingPageType | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [previewStyles, setPreviewStyles] = useState<LandingCustomStyles | null>(null);
 
   useEffect(() => {
     setLoading(true);
     setNotFound(false);
+    setPage(null);
+    setPreviewStyles(null);
     getLandingPage(slug)
       .then((p) => { if (p) { setPage(p); } else { setNotFound(true); } })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [slug]);
 
+  // The inspector provider is mounted above the router. Broadcast the
+  // persisted landing-specific overrides to it so direct visits and reloads
+  // render the same inline edits as the admin preview.
+  useEffect(() => {
+    if (!page) return;
+    const customStyles = parseStyles(page.customStyles ?? "{}");
+    window.postMessage({ type: "sarria-style-preview", landingCustomStyles: customStyles }, "*");
+    return () => {
+      window.postMessage(
+        { type: "sarria-style-preview", clearElementPreview: true },
+        "*",
+      );
+    };
+  }, [page]);
+
+  useEffect(() => {
+    function handlePreview(event: MessageEvent) {
+      const msg = event.data;
+      if (!msg || msg.type !== "sarria-style-preview" || !msg.landingSlug) return;
+      if (msg.landingSlug === slug && msg.landingCustomStyles) {
+        setPreviewStyles(msg.landingCustomStyles as LandingCustomStyles);
+      }
+    }
+    window.addEventListener("message", handlePreview);
+    return () => window.removeEventListener("message", handlePreview);
+  }, [slug]);
+
   if (loading) return <LandingPageSkeleton />;
   if (notFound || !page) return <LandingNotFound />;
 
-  const cs = parseStyles(page.customStyles ?? "{}");
+  const cs = previewStyles ?? parseStyles(page.customStyles ?? "{}");
   const cssVars = buildCssVars(cs);
   const blocks = parseBlocks((page as any).blocks ?? "[]");
 

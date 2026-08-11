@@ -36,6 +36,7 @@ export interface LandingCustomStyles {
   portfolioText?: string;
   fontHeading?: string;
   fontBody?: string;
+  elementStyleOverrides?: string;
 }
 
 export interface LandingContact {

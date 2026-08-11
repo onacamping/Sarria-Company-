@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Building, GraduationCap, Briefcase, ShoppingBag, ArrowRight } from "lucide-react";
+import { Building, GraduationCap, Briefcase, ShoppingBag, ArrowRight, Building2 } from "lucide-react";
 import { Link } from "wouter";
 import SectionHeading from "./section-heading";
 import { useSettings } from "@/lib/site-settings";
@@ -41,6 +41,24 @@ const segments = [
     benefits: ["Impacto visual de alto nivel", "Jardines verticales", "Renovación floral por temporadas", "Operación sin interrumpir el flujo"],
   },
 ];
+
+interface CustomSegment {
+  label: string;
+  slug: string;
+}
+
+function parseCustomSegments(raw: string | undefined): CustomSegment[] {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is CustomSegment =>
+          !!item && typeof item.label === "string" && typeof item.slug === "string" &&
+          item.label.trim().length > 0 && item.slug.trim().length > 0)
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 function SegmentCard({
   segment,
@@ -101,6 +119,7 @@ function SegmentCard({
 export default function ClientTypes() {
   const settings = useSettings();
   const intro = settings["clients_intro"] || DEFAULT_INTRO;
+  const customSegments = parseCustomSegments(settings["segment_custom_links"]);
 
   return (
     <section className="py-24 bg-white">
@@ -111,8 +130,18 @@ export default function ClientTypes() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-          {segments.map((segment, index) => {
-            const landingSlug = settings[segment.settingKey] || undefined;
+          {[...segments, ...customSegments.map((segment, index) => ({
+            id: `custom-${index}`,
+            settingKey: "",
+            title: segment.label,
+            icon: <Building2 className="w-8 h-8" />,
+            description: "Soluciones de jardinería, paisajismo y mantenimiento adaptadas a las necesidades de su operación.",
+            benefits: ["Protocolos adaptados a su operación", "Personal capacitado y supervisado", "Cronogramas flexibles", "Acompañamiento especializado"],
+            customSlug: segment.slug,
+          }))].map((segment, index) => {
+            const landingSlug = "customSlug" in segment
+              ? String(segment.customSlug)
+              : String(settings[segment.settingKey] ?? "") || undefined;
             return (
               <SegmentCard
                 key={segment.id}

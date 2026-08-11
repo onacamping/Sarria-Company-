@@ -114,9 +114,13 @@ export default function ElementInspectorProvider() {
       if (msg.type === "sarria-inspector-mode") {
         setInspectorMode(!!msg.enabled);
         if (!msg.enabled) setSelectedId(null);
-      } else if (msg.type === "sarria-style-preview" && msg.draft) {
-        if ("element_style_overrides" in msg.draft) {
-          setPreviewOverrides(parseOverrides(msg.draft.element_style_overrides));
+      } else if (msg.type === "sarria-style-preview") {
+        const overrides = msg.draft?.element_style_overrides
+          ?? msg.landingCustomStyles?.elementStyleOverrides;
+        if (overrides !== undefined) {
+          setPreviewOverrides(parseOverrides(overrides));
+        } else if (msg.clearElementPreview) {
+          setPreviewOverrides(null);
         }
       } else if (msg.type === "sarria-element-deselect") {
         setSelectedId(null);

@@ -3,7 +3,7 @@
  * Supports: heading, text (rich), image, carousel, video (YouTube), divider.
  * Blocks are reorderable via HTML5 drag-and-drop and up/down buttons.
  */
-import { useState, useRef, lazy, Suspense } from "react";
+import { useState, useRef, lazy, Suspense, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,7 +63,20 @@ function makeId() {
 }
 
 function makeBlock(type: BlockType): Block {
-  return { id: makeId(), type };
+  switch (type) {
+    case "heading":
+      return { id: makeId(), type, headingTitle: "Nuevo encabezado", headingAlign: "center" };
+    case "text":
+      return { id: makeId(), type, textHtml: "<p>Escribe aquí el contenido de esta sección.</p>" };
+    case "image":
+      return { id: makeId(), type, imageSize: "full", imageAlign: "center" };
+    case "carousel":
+      return { id: makeId(), type, carouselImages: [], carouselAspect: "16/9" };
+    case "video":
+      return { id: makeId(), type, videoUrl: "", videoTitle: "" };
+    case "divider":
+      return { id: makeId(), type, dividerSize: "md" };
+  }
 }
 
 function youtubeId(url: string): string | null {
@@ -483,7 +496,7 @@ function BlockCard({
   onMove: (dir: -1 | 1) => void;
   onDragStart: () => void;
   onDragOver: (e: React.DragEvent) => void;
-  onDrop: () => void;
+  onDrop: (e: React.DragEvent) => void;
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -495,7 +508,7 @@ function BlockCard({
       onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(); }}
       onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setIsDragOver(true); onDragOver(e); }}
       onDragLeave={() => setIsDragOver(false)}
-      onDrop={(e) => { e.preventDefault(); setIsDragOver(false); onDrop(); }}
+       onDrop={(e) => { e.preventDefault(); setIsDragOver(false); onDrop(e); }}
       onDragEnd={() => setIsDragOver(false)}
       className={`rounded-xl border transition-all select-none ${isDragOver ? "border-primary bg-primary/5 shadow-md shadow-primary/10" : "border-border bg-card"}`}
     >
@@ -590,6 +603,11 @@ function AddBlockMenu({ onAdd }: { onAdd: (type: BlockType) => void }) {
               <button
                 key={type}
                 type="button"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "copy";
+                  e.dataTransfer.setData("application/x-sarria-block", type);
+                }}
                 onClick={() => { onAdd(type); setOpen(false); }}
                 className="flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-muted transition-colors text-left"
               >
@@ -649,7 +667,19 @@ export default function BlockEditor({ blocks, onChange }: BlockEditorProps) {
   }
 
   // HTML5 DnD reorder
-  function handleDrop(targetIndex: number) {
+  function handleDrop(targetIndex: number, e?: React.DragEvent) {
+    const paletteType = e?.dataTransfer.getData("application/x-sarria-block") as BlockType;
+    if (paletteType && PALETTE.some((item) => item.type === paletteType)) {
+      const block = makeBlock(paletteType);
+      const next = [...blocks];
+      next.splice(targetIndex, 0, block);
+      onChange(next);
+      setExpanded((prev) => new Set([...prev, block.id]));
+      dragIndexRef.current = null;
+      setDragOver(null);
+      return;
+    }
+
     const from = dragIndexRef.current;
     if (from === null || from === targetIndex) return;
     const next = [...blocks];
@@ -660,9 +690,23 @@ export default function BlockEditor({ blocks, onChange }: BlockEditorProps) {
     setDragOver(null);
   }
 
+  function handlePaletteDrop(e: React.DragEvent) {
+    const type = e.dataTransfer.getData("application/x-sarria-block") as BlockType;
+    if (!PALETTE.some((item) => item.type === type)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    addBlock(type);
+  }
+
   if (blocks.length === 0) {
     return (
-      <div className="space-y-4">
+      <div
+        className="space-y-4"
+        onDragOver={(e) => {
+          if (e.dataTransfer.types.includes("application/x-sarria-block")) e.preventDefault();
+        }}
+        onDrop={handlePaletteDrop}
+      >
         <div className="border-2 border-dashed border-border rounded-xl py-14 px-6 text-center">
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
             <Plus className="w-6 h-6 text-muted-foreground" />
@@ -676,7 +720,13 @@ export default function BlockEditor({ blocks, onChange }: BlockEditorProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div
+      className="space-y-2"
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes("application/x-sarria-block")) e.preventDefault();
+      }}
+      onDrop={handlePaletteDrop}
+    >
       {blocks.map((block, index) => (
         <BlockCard
           key={block.id}
@@ -690,7 +740,7 @@ export default function BlockEditor({ blocks, onChange }: BlockEditorProps) {
           onMove={(dir) => moveBlock(index, dir)}
           onDragStart={() => { dragIndexRef.current = index; }}
           onDragOver={() => setDragOver(index)}
-          onDrop={() => handleDrop(index)}
+           onDrop={(e) => handleDrop(index, e)}
         />
       ))}
 

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import ColorPicker from "@/components/admin/color-picker";
 import { FONT_CATEGORIES, ALL_FONTS, BRAND_DEFAULTS } from "@/lib/font-catalog";
 import { parseOverrides, type ElementOverrideMap } from "@/lib/element-inspector";
+import { ElementStylePopover, type SelectedElement } from "@/components/admin/element-style-popover";
 import {
   AlertTriangle,
   Check,
@@ -72,14 +73,6 @@ const PREVIEW_PAGES: { value: PreviewPage; label: string }[] = [
   { value: "/", label: "Inicio" },
   { value: "/tienda", label: "Tienda" },
 ];
-
-interface SelectedElement {
-  id: string;
-  tag: string;
-  text: string;
-  color: string;
-  font: string;
-}
 
 function FontSelect({
   label,
@@ -208,7 +201,7 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
     [draft.element_style_overrides]
   );
 
-  function updateElementOverride(id: string, patch: { color?: string; font?: string }) {
+  function updateElementOverride(id: string, patch: { color?: string; font?: string; text?: string }) {
     const next: ElementOverrideMap = { ...elementOverrides, [id]: { ...elementOverrides[id], ...patch } };
     setDraft((prev) => ({ ...prev, element_style_overrides: JSON.stringify(next) }));
   }
@@ -559,55 +552,13 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
               }}
             />
             {selectedElement && (
-              <div className="absolute top-3 right-3 w-72 bg-white border border-border rounded-lg shadow-xl p-4 space-y-3 z-10">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-xs font-semibold uppercase text-muted-foreground">
-                      Editando &lt;{selectedElement.tag}&gt;
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate max-w-[200px]" title={selectedElement.text}>
-                      {selectedElement.text}
-                    </p>
-                  </div>
-                  <button onClick={closeElementEditor} aria-label="Cerrar">
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
-                {/* Inline text editing */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Texto</Label>
-                  <textarea
-                    rows={2}
-                    className="w-full text-xs rounded-md border border-input bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
-                    value={elementOverrides[selectedElement.id]?.text ?? selectedElement.text}
-                    onChange={(e) => updateElementOverride(selectedElement.id, { text: e.target.value })}
-                    placeholder={selectedElement.text}
-                  />
-                </div>
-                <ColorPicker
-                  id={`el-${selectedElement.id}-color`}
-                  label="Color del texto"
-                  value={elementOverrides[selectedElement.id]?.color ?? selectedElement.color}
-                  onChange={(v) => updateElementOverride(selectedElement.id, { color: v })}
-                />
-                <FontSelect
-                  label="Tipografía"
-                  allowNone
-                  value={elementOverrides[selectedElement.id]?.font ?? ""}
-                  onChange={(v) => updateElementOverride(selectedElement.id, { font: v || undefined })}
-                />
-                {elementOverrides[selectedElement.id] && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => removeElementOverride(selectedElement.id)}
-                  >
-                    Quitar personalización
-                  </Button>
-                )}
-              </div>
+              <ElementStylePopover
+                selected={selectedElement}
+                overrides={elementOverrides}
+                onChange={updateElementOverride}
+                onRemove={removeElementOverride}
+                onClose={closeElementEditor}
+              />
             )}
           </div>
         </div>
