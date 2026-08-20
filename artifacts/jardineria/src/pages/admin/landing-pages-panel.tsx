@@ -327,19 +327,31 @@ export default function LandingPagesPanel() {
 
   async function handleDelete(id: number) {
     if (!confirm("¿Eliminar esta landing page? Esta acción no se puede deshacer.")) return;
-    await deleteLandingPage(id).catch(() => {});
-    await loadAll();
+    try {
+      await deleteLandingPage(id);
+      await loadAll();
+    } catch (err: any) {
+      alert(err.message ?? "No se pudo eliminar la landing page.");
+    }
   }
 
   async function handleDeleteContact(id: number) {
     if (!confirm("¿Eliminar este contacto?")) return;
-    await deleteLandingContact(id).catch(() => {});
-    await loadAll();
+    try {
+      await deleteLandingContact(id);
+      await loadAll();
+    } catch (err: any) {
+      alert(err.message ?? "No se pudo eliminar el contacto.");
+    }
   }
 
   async function toggleActive(page: LandingPage) {
-    await updateLandingPage(page.id, { active: !page.active }).catch(() => {});
-    await loadAll();
+    try {
+      await updateLandingPage(page.id, { active: !page.active });
+      await loadAll();
+    } catch (err: any) {
+      alert(err.message ?? "No se pudo cambiar el estado de publicación.");
+    }
   }
 
   if (loading) {

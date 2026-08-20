@@ -111,7 +111,7 @@ export default function LandingPage() {
 
   const cs = previewStyles ?? parseStyles(page.customStyles ?? "{}");
   const cssVars = buildCssVars(cs);
-  const blocks = parseBlocks((page as any).blocks ?? "[]");
+  const blocks = parseBlocks(page.blocks ?? "[]");
 
   return (
     <>

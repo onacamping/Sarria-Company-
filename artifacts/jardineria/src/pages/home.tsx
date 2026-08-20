@@ -11,11 +11,24 @@ import QuoteForm from "@/components/home/quote-form";
 import Footer from "@/components/home/footer";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
 import { useSettings } from "@/lib/site-settings";
+import ContentBlocksRenderer from "@/components/content-blocks-renderer";
+import type { Block } from "@/components/admin/block-editor";
+
+function parseHomeBlocks(raw: string | undefined): Block[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 export default function Home() {
   const settings = useSettings();
   const showPortfolio = (settings["show_portfolio_section"] ?? "true") !== "false";
   const showQuoteForm = (settings["show_quote_form"] ?? "true") !== "false";
+  const homeBlocks = parseHomeBlocks(settings["home_blocks"]);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -67,6 +80,7 @@ export default function Home() {
         <Navbar />
         <main>
           <Hero />
+          <ContentBlocksRenderer blocks={homeBlocks} />
           <Stats />
           <Services />
           <ClientTypes />

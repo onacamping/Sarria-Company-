@@ -8,6 +8,7 @@ import ColorPicker from "@/components/admin/color-picker";
 import { FONT_CATEGORIES, ALL_FONTS, BRAND_DEFAULTS } from "@/lib/font-catalog";
 import { parseOverrides, type ElementOverrideMap } from "@/lib/element-inspector";
 import { ElementStylePopover, type SelectedElement } from "@/components/admin/element-style-popover";
+import BlockEditor, { type Block } from "@/components/admin/block-editor";
 import {
   AlertTriangle,
   Check,
@@ -40,6 +41,7 @@ const STYLE_KEYS = [
   "color_store_primary",
   "color_store_secondary",
   "element_style_overrides",
+  "home_blocks",
 ] as const;
 
 type StyleKey = (typeof STYLE_KEYS)[number];
@@ -65,6 +67,7 @@ const DEFAULTS: Draft = {
   color_store_primary: "",
   color_store_secondary: "",
   element_style_overrides: "{}",
+  home_blocks: "[]",
 };
 
 type PreviewPage = "/" | "/tienda";
@@ -112,6 +115,15 @@ function FontSelect({
       )}
     </div>
   );
+}
+
+function parseBlocks(raw: string | undefined): Block[] {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
 
 interface Props {
@@ -200,6 +212,7 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
     () => parseOverrides(draft.element_style_overrides),
     [draft.element_style_overrides]
   );
+  const homeBlocks = useMemo(() => parseBlocks(draft.home_blocks), [draft.home_blocks]);
 
   function updateElementOverride(id: string, patch: { color?: string; font?: string; text?: string }) {
     const next: ElementOverrideMap = { ...elementOverrides, [id]: { ...elementOverrides[id], ...patch } };
@@ -227,6 +240,10 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
 
   function set<K extends StyleKey>(key: K) {
     return (v: string) => setDraft((prev) => ({ ...prev, [key]: v }));
+  }
+
+  function setHomeBlocks(blocks: Block[]) {
+    setDraft((prev) => ({ ...prev, home_blocks: JSON.stringify(blocks) }));
   }
 
   function applyBrandPreset() {
@@ -297,6 +314,20 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
       <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
         {/* Controls */}
         <div className="space-y-5">
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">🧱 Contenido editable de la página principal</CardTitle>
+              <CardDescription>
+                Usa el mismo constructor de Landing Pages para agregar, editar, reordenar o eliminar
+                secciones, encabezados, imágenes, carruseles y videos de YouTube. Los cambios se ven en
+                la vista previa y solo se publican al guardar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BlockEditor blocks={homeBlocks} onChange={setHomeBlocks} />
+            </CardContent>
+          </Card>
+
           <Card className="border-primary/30 bg-primary/5">
             <CardHeader className="pb-3">
               <button
