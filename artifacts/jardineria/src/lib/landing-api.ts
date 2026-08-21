@@ -14,6 +14,7 @@ export interface LandingPage {
   active: boolean;
   sortOrder: number;
   customStyles: string; // JSON string: LandingCustomStyles
+  blocks: string; // JSON string: Block[]
   createdAt: string;
   updatedAt: string;
 }
