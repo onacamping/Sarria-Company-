@@ -80,14 +80,21 @@ export default function Home() {
         <Navbar />
         <main>
           <Hero />
-          <ContentBlocksRenderer blocks={homeBlocks} />
+          <ContentBlocksRenderer blocks={homeBlocks} placement="after-hero" />
           <Stats />
+          <ContentBlocksRenderer blocks={homeBlocks} placement="before-stats" />
           <Services />
+          <ContentBlocksRenderer blocks={homeBlocks} placement="before-services" />
           <ClientTypes />
-          {showPortfolio && <Portfolio />}
+          <ContentBlocksRenderer blocks={homeBlocks} placement="before-clients" />
+          {showPortfolio && <><ContentBlocksRenderer blocks={homeBlocks} placement="before-portfolio" /><Portfolio /></>}
+          <ContentBlocksRenderer blocks={homeBlocks} placement="before-about" />
           <About />
+          <ContentBlocksRenderer blocks={homeBlocks} placement="before-testimonials" />
           <Testimonials />
+          <ContentBlocksRenderer blocks={homeBlocks} placement="before-quote" />
           {showQuoteForm && <QuoteForm />}
+          <ContentBlocksRenderer blocks={homeBlocks} placement="before-footer" />
         </main>
         <Footer />
         <WhatsAppButton />

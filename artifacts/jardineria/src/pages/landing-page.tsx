@@ -124,10 +124,12 @@ export default function LandingPage() {
         <main>
           <LandingHero page={page} />
           {/* Block-based content */}
-          {blocks.length > 0 && <BlocksRenderer blocks={blocks} />}
+          {blocks.length > 0 && <BlocksRenderer blocks={blocks} placement="after-hero" />}
           {/* Legacy Quill content (backwards compat) */}
           {blocks.length === 0 && page.content && <LandingContent content={page.content} />}
+          <BlocksRenderer blocks={blocks} placement="before-portfolio" />
           <LandingPortfolio category={page.category} title={page.title} />
+          <BlocksRenderer blocks={blocks} placement="before-footer" />
           <LandingContactForm page={page} />
         </main>
         <Footer />
@@ -210,7 +212,11 @@ function LandingContent({ content }: { content: string }) {
 
 // ── Block renderers ───────────────────────────────────────────────────────────
 
-function BlocksRenderer({ blocks }: { blocks: Block[] }) {
+function BlocksRenderer({ blocks, placement }: { blocks: Block[]; placement?: string }) {
+  const visibleBlocks = placement
+    ? blocks.filter((block) => (block.placement ?? "after-hero") === placement)
+    : blocks;
+  if (visibleBlocks.length === 0) return null;
   return (
     <section
       style={{
@@ -220,7 +226,7 @@ function BlocksRenderer({ blocks }: { blocks: Block[] }) {
       }}
     >
       <div className="container mx-auto px-4 md:px-6 max-w-4xl py-12 space-y-12">
-        {blocks.map((block) => <BlockItem key={block.id} block={block} />)}
+        {visibleBlocks.map((block) => <BlockItem key={block.id} block={block} />)}
       </div>
     </section>
   );

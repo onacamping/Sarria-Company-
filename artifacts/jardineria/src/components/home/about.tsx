@@ -20,12 +20,24 @@ const trustSignals = [
   "Equipos y maquinaria propia de última tecnología",
 ];
 
+function parseTrustSignals(raw: string | undefined) {
+  if (!raw) return trustSignals;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : trustSignals;
+  } catch {
+    return trustSignals;
+  }
+}
+
 export default function About() {
   const settings = useSettings();
   const para1 = settings["about_para1"] || DEFAULT_PARA1;
   const para2 = settings["about_para2"] || DEFAULT_PARA2;
   const para3 = settings["about_para3"] || DEFAULT_PARA3;
   const closing = settings["about_closing"] || DEFAULT_CLOSING;
+  const aboutImage = settings["about_image_url"] || aboutImg;
+  const editableTrustSignals = parseTrustSignals(settings["trust_signals"]);
 
   return (
     <section id="nosotros" className="py-24 bg-muted/10 overflow-hidden">
@@ -49,7 +61,7 @@ export default function About() {
               </div>
 
               <div className="mt-10 grid sm:grid-cols-2 gap-4">
-                {trustSignals.map((signal, idx) => (
+                {editableTrustSignals.map((signal, idx) => (
                   <div key={idx} className="flex items-start gap-3">
                     <CheckCircle2 className="w-6 h-6 text-secondary flex-shrink-0 mt-0.5" />
                     <span className="text-sm font-semibold text-foreground">{signal}</span>
@@ -69,7 +81,7 @@ export default function About() {
             >
               <div className="aspect-[4/3] w-full">
                 <img
-                  src={aboutImg}
+                  src={aboutImage}
                   alt="Equipo de jardinería profesional trabajando"
                   className="w-full h-full object-cover"
                   onError={(e) => {

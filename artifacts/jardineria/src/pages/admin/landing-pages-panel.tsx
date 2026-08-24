@@ -17,7 +17,13 @@ import {
   Globe, Plus, Pencil, Trash2, X, Check, ChevronDown, ChevronUp,
   Users, Inbox, ExternalLink, Eye, EyeOff, Sparkles, Palette, Type, Layout,
 } from "lucide-react";
-import BlockEditor, { type Block } from "@/components/admin/block-editor";
+import BlockEditor, { type Block, type BlockPlacement } from "@/components/admin/block-editor";
+
+const LANDING_PLACEMENTS: { value: BlockPlacement; label: string }[] = [
+  { value: "after-hero", label: "Después del hero (inicio)" },
+  { value: "before-portfolio", label: "Antes del portafolio" },
+  { value: "before-footer", label: "Antes del formulario y pie de página" },
+];
 import { parseOverrides, type ElementOverrideMap } from "@/lib/element-inspector";
 import { ElementStylePopover, type SelectedElement } from "@/components/admin/element-style-popover";
 
@@ -606,7 +612,7 @@ export default function LandingPagesPanel() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <BlockEditor blocks={blocks} onChange={setBlocks} />
+              <BlockEditor blocks={blocks} onChange={setBlocks} placementOptions={LANDING_PLACEMENTS} />
             </CardContent>
           </Card>
         )}

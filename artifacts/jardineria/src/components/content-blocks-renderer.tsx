@@ -5,15 +5,19 @@ import type { Block } from "@/components/admin/block-editor";
 
 interface ContentBlocksRendererProps {
   blocks: Block[];
+  placement?: string;
 }
 
-export default function ContentBlocksRenderer({ blocks }: ContentBlocksRendererProps) {
-  if (blocks.length === 0) return null;
+export default function ContentBlocksRenderer({ blocks, placement }: ContentBlocksRendererProps) {
+  const visibleBlocks = placement
+    ? blocks.filter((block) => (block.placement ?? "after-hero") === placement)
+    : blocks;
+  if (visibleBlocks.length === 0) return null;
 
   return (
     <section className="py-12" style={{ background: "var(--section-bg, transparent)", color: "var(--color-body-text)" }}>
       <div className="container mx-auto px-4 md:px-6 max-w-4xl space-y-12">
-        {blocks.map((block) => <BlockItem key={block.id} block={block} />)}
+        {visibleBlocks.map((block) => <BlockItem key={block.id} block={block} />)}
       </div>
     </section>
   );

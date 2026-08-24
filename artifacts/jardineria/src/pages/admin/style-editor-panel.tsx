@@ -8,7 +8,8 @@ import ColorPicker from "@/components/admin/color-picker";
 import { FONT_CATEGORIES, ALL_FONTS, BRAND_DEFAULTS } from "@/lib/font-catalog";
 import { parseOverrides, type ElementOverrideMap } from "@/lib/element-inspector";
 import { ElementStylePopover, type SelectedElement } from "@/components/admin/element-style-popover";
-import BlockEditor, { type Block } from "@/components/admin/block-editor";
+import BlockEditor, { type Block, type BlockPlacement } from "@/components/admin/block-editor";
+import ImageUpload from "@/components/admin/image-upload";
 import {
   AlertTriangle,
   Check,
@@ -42,6 +43,8 @@ const STYLE_KEYS = [
   "color_store_secondary",
   "element_style_overrides",
   "home_blocks",
+  "about_image_url",
+  "trust_signals",
 ] as const;
 
 type StyleKey = (typeof STYLE_KEYS)[number];
@@ -68,6 +71,8 @@ const DEFAULTS: Draft = {
   color_store_secondary: "",
   element_style_overrides: "{}",
   home_blocks: "[]",
+  about_image_url: "",
+  trust_signals: "[]",
 };
 
 type PreviewPage = "/" | "/tienda";
@@ -75,6 +80,18 @@ type PreviewPage = "/" | "/tienda";
 const PREVIEW_PAGES: { value: PreviewPage; label: string }[] = [
   { value: "/", label: "Inicio" },
   { value: "/tienda", label: "Tienda" },
+];
+
+const HOME_PLACEMENTS: { value: BlockPlacement; label: string }[] = [
+  { value: "after-hero", label: "Después del hero (inicio)" },
+  { value: "before-stats", label: "Antes de estadísticas" },
+  { value: "before-services", label: "Antes de servicios" },
+  { value: "before-clients", label: "Antes de tipos de clientes" },
+  { value: "before-portfolio", label: "Antes de portafolio" },
+  { value: "before-about", label: "Antes de Nosotros" },
+  { value: "before-testimonials", label: "Antes de testimonios" },
+  { value: "before-quote", label: "Antes del formulario de cotización" },
+  { value: "before-footer", label: "Antes del pie de página" },
 ];
 
 function FontSelect({
@@ -123,6 +140,15 @@ function parseBlocks(raw: string | undefined): Block[] {
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
+  }
+}
+
+function signalsAsText(raw: string | undefined) {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string").join("\n") : "";
+  } catch {
+    return "";
   }
 }
 
@@ -324,7 +350,50 @@ export default function StyleEditorPanel({ onDirtyChange }: Props) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <BlockEditor blocks={homeBlocks} onChange={setHomeBlocks} />
+              <BlockEditor blocks={homeBlocks} onChange={setHomeBlocks} placementOptions={HOME_PLACEMENTS} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">✏️ Contenido de “Nosotros”</CardTitle>
+              <CardDescription>
+                Cambia la fotografía y edita los textos que aparecen junto a los chulitos naranjas en la página principal.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Imagen de la sección</Label>
+                {draft.about_image_url ? (
+                  <div className="relative group rounded-lg overflow-hidden border border-border">
+                    <img src={draft.about_image_url} alt="Vista previa de Nosotros" className="w-full aspect-[4/3] object-cover" />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
+                      onClick={() => set("about_image_url")("")}
+                    >Quitar imagen</Button>
+                  </div>
+                ) : (
+                  <ImageUpload accept="image/*" label="Subir imagen de Nosotros" onUploaded={(url) => set("about_image_url")(url)} />
+                )}
+                <Input
+                  value={draft.about_image_url ?? ""}
+                  onChange={(e) => set("about_image_url")(e.target.value)}
+                  placeholder="O pega aquí la URL de una imagen"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Textos con chulito (uno por línea)</Label>
+                <textarea
+                  value={signalsAsText(draft.trust_signals)}
+                  onChange={(e) => set("trust_signals")(JSON.stringify(e.target.value.split("\n").filter((line) => line.trim())))}
+                  rows={8}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-y"
+                  placeholder="Diagnóstico técnico y visitas de evaluación sin costo&#10;Propuestas personalizadas orientadas a resultados medibles"
+                />
+              </div>
             </CardContent>
           </Card>
 

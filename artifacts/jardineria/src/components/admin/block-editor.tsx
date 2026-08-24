@@ -21,6 +21,16 @@ const RichTextEditor = lazy(() => import("@/components/admin/rich-text-editor"))
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export type BlockType = "heading" | "text" | "image" | "carousel" | "video" | "divider";
+export type BlockPlacement =
+  | "after-hero"
+  | "before-stats"
+  | "before-services"
+  | "before-clients"
+  | "before-portfolio"
+  | "before-about"
+  | "before-testimonials"
+  | "before-quote"
+  | "before-footer";
 
 export interface CarouselImage {
   url: string;
@@ -30,6 +40,8 @@ export interface CarouselImage {
 export interface Block {
   id: string;
   type: BlockType;
+  /** Used by the home builder; omitted on landing pages for normal sequential rendering. */
+  placement?: BlockPlacement;
   // heading
   headingTitle?: string;
   headingSubtitle?: string;
@@ -54,6 +66,7 @@ export interface Block {
 export interface BlockEditorProps {
   blocks: Block[];
   onChange: (blocks: Block[]) => void;
+  placementOptions?: { value: BlockPlacement; label: string }[];
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -485,6 +498,7 @@ function BlockCard({
   onDragStart,
   onDragOver,
   onDrop,
+  placementOptions,
 }: {
   block: Block;
   index: number;
@@ -497,6 +511,7 @@ function BlockCard({
   onDragStart: () => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => void;
+  placementOptions?: { value: BlockPlacement; label: string }[];
 }) {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -552,6 +567,19 @@ function BlockCard({
       {/* Editor */}
       {expanded && (
         <div className="px-4 pb-4 border-t border-border/60 bg-muted/10">
+          {placementOptions && (
+            <div className="pt-3 space-y-1.5">
+              <Label className="text-xs">Ubicación en la página principal</Label>
+              <select
+                value={block.placement ?? "after-hero"}
+                onChange={(e) => onChange({ ...block, placement: e.target.value as BlockPlacement })}
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                {placementOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+              <p className="text-[11px] text-muted-foreground">También puedes arrastrar los bloques para cambiar su orden dentro de esta ubicación.</p>
+            </div>
+          )}
           {block.type === "heading" && <HeadingEditor block={block} onChange={onChange} />}
           {block.type === "text" && <TextEditor block={block} onChange={onChange} />}
           {block.type === "image" && <ImageEditor block={block} onChange={onChange} />}
@@ -627,7 +655,7 @@ function AddBlockMenu({ onAdd }: { onAdd: (type: BlockType) => void }) {
 
 // ─── Main BlockEditor ────────────────────────────────────────────────────────
 
-export default function BlockEditor({ blocks, onChange }: BlockEditorProps) {
+export default function BlockEditor({ blocks, onChange, placementOptions }: BlockEditorProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const dragIndexRef = useRef<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
@@ -741,6 +769,7 @@ export default function BlockEditor({ blocks, onChange }: BlockEditorProps) {
           onDragStart={() => { dragIndexRef.current = index; }}
           onDragOver={() => setDragOver(index)}
            onDrop={(e) => handleDrop(index, e)}
+          placementOptions={placementOptions}
         />
       ))}
 
