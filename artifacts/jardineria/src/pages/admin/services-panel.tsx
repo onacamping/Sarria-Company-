@@ -13,9 +13,9 @@ interface Service {
   id: number;
   title: string;
   description: string;
-  icon_name: string;
+  iconName: string;
   active: boolean;
-  sort_order: number;
+  sortOrder: number;
 }
 
 const ICONS = [
@@ -116,7 +116,7 @@ export default function ServicesPanel() {
 
   function startEdit(s: Service) {
     setEditId(s.id);
-    setForm({ title: s.title, description: s.description, icon_name: s.icon_name, active: s.active, sort_order: s.sort_order });
+    setForm({ title: s.title, description: s.description, icon_name: s.iconName, active: s.active, sort_order: s.sortOrder });
     setAdding(false);
   }
 
@@ -181,7 +181,7 @@ export default function ServicesPanel() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold text-sm">{s.title}</span>
-                      <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{s.icon_name}</span>
+                      <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{s.iconName}</span>
                       {!s.active && <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">Oculto</span>}
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">{s.description}</p>
