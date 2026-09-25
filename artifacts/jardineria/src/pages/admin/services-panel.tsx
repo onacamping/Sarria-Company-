@@ -37,6 +37,67 @@ async function apiSvc(method: string, path: string, body?: unknown) {
   return data;
 }
 
+// IMPORTANTE: FormCard ahora vive FUERA de ServicesPanel.
+// Así React no lo recrea (ni destruye el DOM/foco) en cada tecla que escribes.
+interface FormCardProps {
+  form: typeof EMPTY;
+  setF: (k: keyof typeof EMPTY) => (v: string | boolean | number) => void;
+  handleSave: () => void;
+  cancelEdit: () => void;
+  saving: boolean;
+  editId: number | null;
+}
+
+function FormCard({ form, setF, handleSave, cancelEdit, saving, editId }: FormCardProps) {
+  return (
+    <Card className="border-primary/30 bg-primary/5">
+      <CardContent className="pt-5 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label>Título del servicio *</Label>
+            <Input value={form.title} onChange={(e) => setF("title")(e.target.value)} placeholder="Ej: Mantenimiento de Zonas Verdes" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Ícono</Label>
+            <select
+              className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+              value={form.icon_name}
+              onChange={(e) => setF("icon_name")(e.target.value)}
+            >
+              {ICONS.map((icon) => <option key={icon} value={icon}>{icon}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Descripción</Label>
+          <Textarea value={form.description} onChange={(e) => setF("description")(e.target.value)} placeholder="Descripción del servicio..." rows={3} />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label>Orden de visualización</Label>
+            <Input type="number" value={form.sort_order} onChange={(e) => setF("sort_order")(Number(e.target.value))} />
+          </div>
+          <div className="flex items-end pb-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" checked={form.active} onChange={(e) => setF("active")(e.target.checked)} className="w-4 h-4 accent-primary" />
+              <span className="text-sm font-medium">Visible en el sitio</span>
+            </label>
+          </div>
+        </div>
+        <div className="flex gap-2 pt-2">
+          <Button onClick={handleSave} disabled={saving} size="sm" className="gap-1.5">
+            <Check className="w-4 h-4" />
+            {saving ? "Guardando..." : editId != null ? "Actualizar" : "Crear servicio"}
+          </Button>
+          <Button onClick={cancelEdit} variant="ghost" size="sm" className="gap-1.5">
+            <X className="w-4 h-4" /> Cancelar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ServicesPanel() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,56 +144,6 @@ export default function ServicesPanel() {
   const setF = (k: keyof typeof form) => (v: string | boolean | number) =>
     setForm((p) => ({ ...p, [k]: v }));
 
-  function FormCard() {
-    return (
-      <Card className="border-primary/30 bg-primary/5">
-        <CardContent className="pt-5 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Título del servicio *</Label>
-              <Input value={form.title} onChange={(e) => setF("title")(e.target.value)} placeholder="Ej: Mantenimiento de Zonas Verdes" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Ícono</Label>
-              <select
-                className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
-                value={form.icon_name}
-                onChange={(e) => setF("icon_name")(e.target.value)}
-              >
-                {ICONS.map((icon) => <option key={icon} value={icon}>{icon}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Descripción</Label>
-            <Textarea value={form.description} onChange={(e) => setF("description")(e.target.value)} placeholder="Descripción del servicio..." rows={3} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Orden de visualización</Label>
-              <Input type="number" value={form.sort_order} onChange={(e) => setF("sort_order")(Number(e.target.value))} />
-            </div>
-            <div className="flex items-end pb-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input type="checkbox" checked={form.active} onChange={(e) => setF("active")(e.target.checked)} className="w-4 h-4 accent-primary" />
-                <span className="text-sm font-medium">Visible en el sitio</span>
-              </label>
-            </div>
-          </div>
-          <div className="flex gap-2 pt-2">
-            <Button onClick={handleSave} disabled={saving} size="sm" className="gap-1.5">
-              <Check className="w-4 h-4" />
-              {saving ? "Guardando..." : editId != null ? "Actualizar" : "Crear servicio"}
-            </Button>
-            <Button onClick={cancelEdit} variant="ghost" size="sm" className="gap-1.5">
-              <X className="w-4 h-4" /> Cancelar
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   if (loading) return <div className="py-20 text-center text-muted-foreground">Cargando servicios...</div>;
 
   return (
@@ -149,7 +160,9 @@ export default function ServicesPanel() {
         )}
       </div>
 
-      {adding && editId == null && <FormCard />}
+      {adding && editId == null && (
+        <FormCard form={form} setF={setF} handleSave={handleSave} cancelEdit={cancelEdit} saving={saving} editId={editId} />
+      )}
 
       <div className="space-y-3">
         {services.length === 0 && (
@@ -159,7 +172,9 @@ export default function ServicesPanel() {
         )}
         {services.map((s) => (
           <div key={s.id}>
-            {editId === s.id ? <FormCard /> : (
+            {editId === s.id ? (
+              <FormCard form={form} setF={setF} handleSave={handleSave} cancelEdit={cancelEdit} saving={saving} editId={editId} />
+            ) : (
               <Card className={!s.active ? "opacity-60" : ""}>
                 <CardContent className="pt-4 flex items-start gap-3">
                   <GripVertical className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0" />
