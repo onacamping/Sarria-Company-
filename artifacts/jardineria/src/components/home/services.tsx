@@ -71,10 +71,12 @@ export default function Services() {
             >
               <Card className="h-full border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
                 <CardHeader>
-                  <div className="mb-4 p-3 bg-primary/5 inline-flex rounded-lg w-fit">
-                    {ICON_MAP[service.iconName] ?? ICON_MAP["Leaf"]}
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/5 inline-flex rounded-lg w-fit flex-shrink-0">
+                      {ICON_MAP[service.iconName] ?? ICON_MAP["Leaf"]}
+                    </div>
+                    <CardTitle className="text-xl">{service.title}</CardTitle>
                   </div>
-                  <CardTitle className="text-xl">{service.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base text-muted-foreground leading-relaxed">
