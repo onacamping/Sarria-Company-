@@ -11,7 +11,7 @@ interface Service {
   id: number;
   title: string;
   description: string;
-  icon_name: string;
+  iconName: string;
 }
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -30,12 +30,12 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 const FALLBACK: Service[] = [
-  { id: 1, title: "Mantenimiento de Zonas Verdes", description: "Rutinas preventivas y correctivas diseñadas para mantener el vigor y la estética de sus jardines en cualquier temporada del año.", icon_name: "Leaf" },
-  { id: 2, title: "Diseño Paisajístico", description: "Planeación integral de espacios verdes que valorizan su propiedad, seleccionando especies adaptadas a la altitud de la Sabana de Bogotá.", icon_name: "Trees" },
-  { id: 3, title: "Instalación de Jardines", description: "Suministro y siembra profesional de césped, plantas ornamentales y árboles con los más altos estándares agronómicos.", icon_name: "Sprout" },
-  { id: 4, title: "Poda y Tala", description: "Manejo técnico de especies arbóreas, podas de formación, realce y talas autorizadas con estricto cumplimiento normativo.", icon_name: "Scissors" },
-  { id: 5, title: "Fumigación y Control", description: "Manejo integrado de plagas y enfermedades usando productos amigables con el medio ambiente y seguros para residentes.", icon_name: "Bug" },
-  { id: 6, title: "Consultoría Verde", description: "Asesoría especializada para administradores y juntas de consejo en presupuesto, normatividad ambiental y viabilidad de proyectos.", icon_name: "Lightbulb" },
+  { id: 1, title: "Mantenimiento de Zonas Verdes", description: "Rutinas preventivas y correctivas diseñadas para mantener el vigor y la estética de sus jardines en cualquier temporada del año.", iconName: "Leaf" },
+  { id: 2, title: "Diseño Paisajístico", description: "Planeación integral de espacios verdes que valorizan su propiedad, seleccionando especies adaptadas a la altitud de la Sabana de Bogotá.", iconName: "Trees" },
+  { id: 3, title: "Instalación de Jardines", description: "Suministro y siembra profesional de césped, plantas ornamentales y árboles con los más altos estándares agronómicos.", iconName: "Sprout" },
+  { id: 4, title: "Poda y Tala", description: "Manejo técnico de especies arbóreas, podas de formación, realce y talas autorizadas con estricto cumplimiento normativo.", iconName: "Scissors" },
+  { id: 5, title: "Fumigación y Control", description: "Manejo integrado de plagas y enfermedades usando productos amigables con el medio ambiente y seguros para residentes.", iconName: "Bug" },
+  { id: 6, title: "Consultoría Verde", description: "Asesoría especializada para administradores y juntas de consejo en presupuesto, normatividad ambiental y viabilidad de proyectos.", iconName: "Lightbulb" },
 ];
 
 const base = () => (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
@@ -72,7 +72,7 @@ export default function Services() {
               <Card className="h-full border-border/50 shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
                 <CardHeader>
                   <div className="mb-4 p-3 bg-primary/5 inline-flex rounded-lg w-fit">
-                    {ICON_MAP[service.icon_name] ?? ICON_MAP["Leaf"]}
+                    {ICON_MAP[service.iconName] ?? ICON_MAP["Leaf"]}
                   </div>
                   <CardTitle className="text-xl">{service.title}</CardTitle>
                 </CardHeader>
